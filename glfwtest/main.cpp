@@ -14,10 +14,27 @@ float blue = 1.0f;
 float green = 1.0f;
 //Globals for screen colors
 
+float vertex1x = -0.5f;
+float vertex1y = -0.5f;
+float vertex1z = 0.0f;
+float vertex2x = 0.5f;
+float vertex2y = -0.5f;
+float vertex2z = 0.0f;
+float vertex3x = 0.0f;
+float vertex3y = 0.5f;
+float vertex3z = 0.0f;
+//Global points for the triangle. Is here so points can be modified.
+
 //Press QWE to raise the color and ASD to lower it.
+//Press RTY to raise the X of the triangle and FGH to lower it.
+//Press UIO to raise the Y of the triangle and JKL to lower it.
+//Press ZXC to raise the Z of the triangle and VBN to lower it.
+//Note: none of the triangle adjusts have been implemented.
 
 int main()
 {
+    float vertices[8];
+    //Array to draw the vertexes.
 
     glfwInit();
     glewInit();
@@ -53,6 +70,10 @@ int main()
     glfwSetKeyCallback(window,key_callback);
     //Sets what function manages key presses.
 
+    GLuint VBO;
+    glGenBuffers(1,&VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),vertices,GL_DYNAMIC_DRAW);
 
 
     while (!glfwWindowShouldClose(window))
@@ -117,6 +138,132 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         if (blue > 0)
         {
             blue -= .1f;
+        }
+    }
+    if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    {
+        if (vertex1x < 1.0f)
+        {
+            vertex1x += .1f;
+        }
+    }
+    if (key == GLFW_KEY_T && action == GLFW_PRESS)
+    {
+        if (vertex2x < 1.0f)
+        {
+            vertex2x += .1f;
+        }
+    }
+    if (key == GLFW_KEY_Y && action == GLFW_PRESS)
+    {
+        if (vertex3x < 1.0f)
+        {
+            vertex3x += .1f;
+        }
+    }
+    if (key == GLFW_KEY_F && action == GLFW_PRESS)
+    {
+        if (vertex1x > -1.0f)
+        {
+            vertex1x -= .1f;
+        }
+    }
+    if (key == GLFW_KEY_G && action == GLFW_PRESS)
+    {
+        if (vertex2x > -1.0f)
+        {
+            vertex2x -= .1f;
+        }
+    }
+    if (key == GLFW_KEY_H && action == GLFW_PRESS)
+    {
+        if (vertex3x > -1.0f)
+        {
+            vertex3x -= .1f;
+        }
+    }
+    if (key == GLFW_KEY_U && action == GLFW_PRESS)
+    {
+        if (vertex1y < 1.0f)
+        {
+            vertex1y += .1f;
+        }
+    }
+    if (key == GLFW_KEY_I && action == GLFW_PRESS)
+    {
+        if (vertex2y < 1.0f)
+        {
+            vertex2y += .1f;
+        }
+    }
+    if (key == GLFW_KEY_O && action == GLFW_PRESS)
+    {
+        if (vertex3y < 1.0f)
+        {
+            vertex3y += .1f;
+        }
+    }
+    if (key == GLFW_KEY_J && action == GLFW_PRESS)
+    {
+        if (vertex1y > -1.0f)
+        {
+            vertex1y -= .1f;
+        }
+    }
+    if (key == GLFW_KEY_K && action == GLFW_PRESS)
+    {
+        if (vertex2y > -1.0f)
+        {
+            vertex2y -= .1f;
+        }
+    }
+    if (key == GLFW_KEY_L && action == GLFW_PRESS)
+    {
+        if (vertex3y > -1.0f)
+        {
+            vertex3y -= .1f;
+        }
+    }
+    if (key == GLFW_KEY_Z && action == GLFW_PRESS)
+    {
+        if (vertex1z < 1.0f)
+        {
+            vertex1z += .1f;
+        }
+    }
+    if (key == GLFW_KEY_X && action == GLFW_PRESS)
+    {
+        if (vertex2z < 1.0f)
+        {
+            vertex2z += .1f;
+        }
+    }
+    if (key == GLFW_KEY_C && action == GLFW_PRESS)
+    {
+        if (vertex3z < 1.0f)
+        {
+            vertex3z += .1f;
+        }
+    }
+    if (key == GLFW_KEY_V && action == GLFW_PRESS)
+    {
+        if (vertex1z > -1.0f)
+        {
+            vertex1z -= .1f;
+        }
+    }
+    if (key == GLFW_KEY_B && action == GLFW_PRESS)
+    {
+        if (vertex2z > -1.0f)
+        {
+            vertex2z -= .1f;
+        }
+    }
+    if (key == GLFW_KEY_N && action == GLFW_PRESS)
+    {
+        if (vertex3z > -1.0f)
+        {
+            vertex3z -= .1f;
         }
     }
 }
