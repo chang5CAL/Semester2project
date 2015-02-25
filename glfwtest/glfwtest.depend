@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1424715610 source:d:\c-projects\glfwtest\main.cpp
+	<iostream>
+	<GL/glew.h>
+	<GL/glfw3.h>
+

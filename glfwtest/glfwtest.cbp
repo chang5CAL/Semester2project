@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="glfwtest" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/glfwtest" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/glfwtest" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add option="-DGLEW_STATIC" />
+			<Add directory="D:/Libraries/glew-1.12.0/include/GL" />
+			<Add directory="D:/Libraries/glfw-3.1.bin.WIN32/include/GLFW" />
+		</Compiler>
+		<Linker>
+			<Add library="D:\CodeBlocks\MinGW\lib\glew32.lib" />
+			<Add library="D:\CodeBlocks\MinGW\lib\glfw3dll.a" />
+			<Add directory="D:/Libraries/glew-1.12.0/lib" />
+			<Add directory="D:/Libraries/glfw-3.1.bin.WIN32/lib-mingw" />
+		</Linker>
+		<Unit filename="main.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
