@@ -3,6 +3,7 @@
 // GLEW
 #define GLEW_STATIC
 #include <GL/glew.h>
+//Something broke in Glew, apparently, so now it won't let me compile.
 
 // GLFW
 #include <GL/glfw3.h>
@@ -31,10 +32,21 @@ float vertex3z = 0.0f;
 //Press ZXC to raise the Z of the triangle and VBN to lower it.
 //Note: none of the triangle adjusts have been implemented.
 
+const GLchar* vertexShaderSource = "#version 330 core\n"
+"layout (location = 0) in vec3 position;\n"
+"void main()\n"
+"{\n"
+"    gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
+"}\0";
+
 int main()
 {
     float vertices[8];
     //Array to draw the vertexes.
+    GLuint VBO;
+    GLuint vertexShader;
+    GLint success;
+    GLchar infolog[512];
 
     glfwInit();
     glewInit();
@@ -70,10 +82,22 @@ int main()
     glfwSetKeyCallback(window,key_callback);
     //Sets what function manages key presses.
 
-    GLuint VBO;
     glGenBuffers(1,&VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),vertices,GL_DYNAMIC_DRAW);
+
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+
+    glShaderSource(vertexShader,1,&vertexShaderSource,NULL);
+    glCompileShader(vertexShader);
+
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+
+    if (!success)
+    {
+        glGetShaderInfoLog(vertexShader, 512, NULL, infolog);
+        std::cout << "Shader failed to compile\n" << infolog << std::endl;
+    }
 
 
     while (!glfwWindowShouldClose(window))
