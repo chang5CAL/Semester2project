@@ -1,7 +1,8 @@
 #include <iostream>
 
 // GLEW
-#define GLEW_STATIC
+//#define GLEW_STATIC
+//Removed because already defined in compiler settings.
 #include <GL/glew.h>
 //Something broke in Glew, apparently, so now it won't let me compile.
 
