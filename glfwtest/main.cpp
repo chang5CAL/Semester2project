@@ -5,6 +5,8 @@
 //Removed because already defined in compiler settings.
 #include <GL/glew.h>
 //Something broke in Glew, apparently, so now it won't let me compile.
+//Found solution: Replace glew32.lib with glew32s.lib in linker.
+//New problem: will now crash on launch.
 
 // GLFW
 #include <GL/glfw3.h>
@@ -16,16 +18,32 @@ float blue = 1.0f;
 float green = 1.0f;
 //Globals for screen colors
 
-float vertex1x = -0.5f;
-float vertex1y = -0.5f;
-float vertex1z = 0.0f;
-float vertex2x = 0.5f;
-float vertex2y = -0.5f;
-float vertex2z = 0.0f;
-float vertex3x = 0.0f;
-float vertex3y = 0.5f;
-float vertex3z = 0.0f;
+GLfloat vertex1x = -0.5f;
+GLfloat vertex1y = -0.5f;
+GLfloat vertex1z = 0.0f;
+GLfloat vertex2x = 0.5f;
+GLfloat vertex2y = -0.5f;
+GLfloat vertex2z = 0.0f;
+GLfloat vertex3x = 0.0f;
+GLfloat vertex3y = 0.5f;
+GLfloat vertex3z = 0.0f;
 //Global points for the triangle. Is here so points can be modified.
+
+
+GLfloat vertices[] =
+{
+    vertex1x,vertex1y,vertex1z,
+    vertex2x,vertex2y,vertex2z,
+    vertex3x,vertex3y,vertex3z,
+    0.0f,-0.5f,0.0f;
+};
+
+GLuint indices[] =
+{
+    0,1,2,
+    0,1,3
+};
+
 
 //Press QWE to raise the color and ASD to lower it.
 //Press RTY to raise the X of the triangle and FGH to lower it.
@@ -49,7 +67,6 @@ const GLchar* fragmentShaderSource = "#version 330 core \n"
 
 int main()
 {
-    float vertices[8];
     //Array to draw the vertexes.
     GLuint VBO;
     GLuint vertexShader;
@@ -63,6 +80,8 @@ int main()
     glfwInit();
     glewInit();
     //Initiates the libraries
+    glewExperimental = GL_TRUE;
+    //So turns out this is absolutely neccessary and the program would crash without it
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
@@ -71,6 +90,8 @@ int main()
     //Ensures OpenGL will only run using new functionality.
     glfwWindowHint(GLFW_RESIZABLE,GL_TRUE);
     //Sets if the window is resizeable.
+    glViewport(0,0,800,600);
+    //Allows OpenGL to know the initial coordinate and the size of the window.
 
     GLFWwindow* window = glfwCreateWindow(800,600,"Window Test", NULL, NULL);
     glfwMakeContextCurrent(window);
@@ -88,18 +109,14 @@ int main()
         return -1;
     }
     //Checks if GLEW successfully initiated.
-    glViewport(0,0,800,600);
-    //Allows OpenGL to know the initial coordinate and the size of the window.
 
     glfwSetKeyCallback(window,key_callback);
     //Sets what function manages key presses.
 
-    glGenBuffers(1,&VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),vertices,GL_DYNAMIC_DRAW);
-
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+    shaderProgram = glCreateProgram();
 
     glShaderSource(vertexShader,1,&vertexShaderSource,NULL);
     glShaderSource(fragmentShader, 1,&fragmentShaderSource,NULL);
@@ -107,10 +124,6 @@ int main()
     glCompileShader(vertexShader);
     glCompileShader(fragmentShader);
 
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram,vertexShader);
-    glAttachShader(shaderProgram,fragmentShader);
-    glLinkProgram(shaderProgram);
 
     //Tests the shader and shader program to see if they work.
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
@@ -121,6 +134,10 @@ int main()
         std::cout << "Shader failed to compile\n" << infolog << std::endl;
     }
 
+    glAttachShader(shaderProgram,vertexShader);
+    glAttachShader(shaderProgram,fragmentShader);
+    glLinkProgram(shaderProgram);
+
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
 
     if (!success)
@@ -128,24 +145,31 @@ int main()
         glGetProgramInfoLog(shaderProgram,512,NULL,infolog);
         std::cout << "Shader program to compile\n" << infolog << std::endl;
     }
-
-    glGenVertexArrays(1,&VAO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER,VAO);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_DYNAMIC_DRAW);
-
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(GLfloat),(GLvoid*)0);
-    glBindVertexArray(0);
-
-    //
-
-    glUseProgram(shaderProgram);
-    //Uses the Shader Program
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
     //Deletes these shaders, since they are now unneccessary.
+
+    glGenVertexArrays(1,&VAO);
+    glGenBuffers(1,&VBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),vertices,GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(GLfloat),(GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+
+
+    glBindVertexArray(0);
+
+    /////////////////////////////////////////////////////////
+
+    /*
+    glUseProgram(shaderProgram);
+    //Uses the Shader Program
 
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
@@ -157,15 +181,20 @@ int main()
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
 
-    glUseProgram(shaderProgram);
-
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES,0,3);
     glBindVertexArray(0);
+    */
 
 
     while (!glfwWindowShouldClose(window))
     {
+
+        glBindVertexArray(VAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),vertices,GL_DYNAMIC_DRAW);
+
         glfwPollEvents();
 
         glClearColor(red,green,blue,1.0f);
@@ -174,7 +203,6 @@ int main()
 
         //Draws the triangle
         glUseProgram(shaderProgram);
-
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES,0,3);
         glBindVertexArray(0);
@@ -240,128 +268,129 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
-        if (vertex1x < 1.0f)
+        if (vertices[0] < 1.0f)
         {
-            vertex1x += .1f;
+            vertices[0] += .1f;
         }
     }
     if (key == GLFW_KEY_T && action == GLFW_PRESS)
     {
-        if (vertex2x < 1.0f)
+        if (vertices[3] < 1.0f)
         {
-            vertex2x += .1f;
+            vertices[3] += .1f;
         }
     }
     if (key == GLFW_KEY_Y && action == GLFW_PRESS)
     {
-        if (vertex3x < 1.0f)
+        if (vertices[6] < 1.0f)
         {
-            vertex3x += .1f;
+            vertices[6] += .1f;
         }
     }
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
     {
-        if (vertex1x > -1.0f)
+        if (vertices[0] > -1.0f)
         {
-            vertex1x -= .1f;
+            vertices[0] -= .1f;
         }
     }
     if (key == GLFW_KEY_G && action == GLFW_PRESS)
     {
-        if (vertex2x > -1.0f)
+        if (vertices[3] > -1.0f)
         {
-            vertex2x -= .1f;
+            vertices[3] -= .1f;
         }
     }
     if (key == GLFW_KEY_H && action == GLFW_PRESS)
     {
-        if (vertex3x > -1.0f)
+        if (vertices[6] > -1.0f)
         {
-            vertex3x -= .1f;
+            vertices[6] -= .1f;
         }
     }
     if (key == GLFW_KEY_U && action == GLFW_PRESS)
     {
-        if (vertex1y < 1.0f)
+        if (vertices[1] < 1.0f)
         {
-            vertex1y += .1f;
+            vertices[1] += .1f;
         }
     }
     if (key == GLFW_KEY_I && action == GLFW_PRESS)
     {
-        if (vertex2y < 1.0f)
+        if (vertices[4] < 1.0f)
         {
-            vertex2y += .1f;
+            vertices[4] += .1f;
         }
     }
     if (key == GLFW_KEY_O && action == GLFW_PRESS)
     {
-        if (vertex3y < 1.0f)
+        if (vertices[7] < 1.0f)
         {
-            vertex3y += .1f;
+            vertices[7] += .1f;
         }
     }
     if (key == GLFW_KEY_J && action == GLFW_PRESS)
     {
-        if (vertex1y > -1.0f)
+        if (vertices[1] > -1.0f)
         {
-            vertex1y -= .1f;
+            vertices[1] -= .1f;
         }
     }
     if (key == GLFW_KEY_K && action == GLFW_PRESS)
     {
-        if (vertex2y > -1.0f)
+        if (vertices[4] > -1.0f)
         {
-            vertex2y -= .1f;
+            vertices[4] -= .1f;
         }
     }
     if (key == GLFW_KEY_L && action == GLFW_PRESS)
     {
-        if (vertex3y > -1.0f)
+        if (vertices[7] > -1.0f)
         {
-            vertex3y -= .1f;
+            vertices[7] -= .1f;
         }
     }
     if (key == GLFW_KEY_Z && action == GLFW_PRESS)
     {
-        if (vertex1z < 1.0f)
+        if (vertices[2] < 1.0f)
         {
-            vertex1z += .1f;
+            vertices[2] += .1f;
         }
     }
     if (key == GLFW_KEY_X && action == GLFW_PRESS)
     {
-        if (vertex2z < 1.0f)
+        if (vertices[5] < 1.0f)
         {
-            vertex2z += .1f;
+            vertices[5] += .1f;
         }
     }
     if (key == GLFW_KEY_C && action == GLFW_PRESS)
     {
-        if (vertex3z < 1.0f)
+        if (vertices[8] < 1.0f)
         {
-            vertex3z += .1f;
+            vertices[8] += .1f;
         }
     }
     if (key == GLFW_KEY_V && action == GLFW_PRESS)
     {
-        if (vertex1z > -1.0f)
+        if (vertices[2] > -1.0f)
         {
-            vertex1z -= .1f;
+            vertices[2] -= .1f;
         }
     }
     if (key == GLFW_KEY_B && action == GLFW_PRESS)
     {
-        if (vertex2z > -1.0f)
+        if (vertices[5] > -1.0f)
         {
-            vertex2z -= .1f;
+            vertices[5] -= .1f;
         }
     }
     if (key == GLFW_KEY_N && action == GLFW_PRESS)
     {
-        if (vertex3z > -1.0f)
+        if (vertices[8] > -1.0f)
         {
-            vertex3z -= .1f;
+            vertices[8] -= .1f;
+
         }
     }
 }
