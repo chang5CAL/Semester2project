@@ -4,9 +4,6 @@
 //#define GLEW_STATIC
 //Removed because already defined in compiler settings.
 #include <GL/glew.h>
-//Something broke in Glew, apparently, so now it won't let me compile.
-//Found solution: Replace glew32.lib with glew32s.lib in linker.
-//New problem: will now crash on launch.
 
 // GLFW
 #include <GL/glfw3.h>
@@ -53,16 +50,19 @@ GLuint indices[] =
 
 const GLchar* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 position;\n"
+"out vec4 vertexColor;\n"
 "void main()\n"
 "{\n"
-"    gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
+"   gl_Position = vec4(position,1.0);\n"
+"   vertexColor = vec4(0.3f,0.3f,1.0f,1.0f);\n"
 "}\0";
 
 const GLchar* fragmentShaderSource = "#version 330 core \n"
-"out vec4 color;"
+"in vec4 vertexColor;\n"
+"out vec4 color;\n"
 "void main()\n"
 "{\n"
-"   color = vec4(1.0f,0.5f,0.2f,1.0f);\n"
+"   color = vertexColor;\n"
 "}\0";
 
 int main()
@@ -132,7 +132,7 @@ int main()
     if (!success)
     {
         glGetShaderInfoLog(vertexShader, 512, NULL, infolog);
-        std::cout << "Shader failed to compile\n" << infolog << std::endl;
+        std::cout << "Vertex Shader failed to compile\n" << infolog << std::endl;
     }
 
     glAttachShader(shaderProgram,vertexShader);
