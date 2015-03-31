@@ -4,8 +4,9 @@
 	<GL/glew.h>
 	<GL/glfw3.h>
 
-1426525860 source:d:\semester2project\glfwtest\main.cpp
+1427823746 source:d:\semester2project\glfwtest\main.cpp
 	<iostream>
+	<math.h>
 	<GL/glew.h>
 	<GL/glfw3.h>
 

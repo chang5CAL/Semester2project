@@ -1,4 +1,6 @@
 #include <iostream>
+#include <math.h>
+//Imports math for formula reasons
 
 // GLEW
 //#define GLEW_STATIC
@@ -26,13 +28,13 @@ GLfloat vertex3y = 0.5f;
 GLfloat vertex3z = 0.0f;
 //Global points for the triangle. Is here so points can be modified.
 
+GLfloat timeValue = glfwGetTime();
 
 GLfloat vertices[] =
 {
-    vertex1x,vertex1y,vertex1z,
-    vertex2x,vertex2y,vertex2z,
-    vertex3x,vertex3y,vertex3z,
-    0.0f,-1.0f,0.0f
+    vertex1x,vertex1y,vertex1z, 1.0f, 0.0f, 0.0f,
+    vertex2x,vertex2y,vertex2z, 0.0f, 1.0f, 0.0f,
+    vertex3x,vertex3y,vertex3z, 0.0f, 0.0f, 1.0f
 };
 
 GLuint indices[] =
@@ -50,19 +52,21 @@ GLuint indices[] =
 
 const GLchar* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 position;\n"
-"out vec4 vertexColor;\n"
+"layout (location = 1) in vec3 color;\n"
+"out vec3 vertexColor;\n"
 "void main()\n"
 "{\n"
 "   gl_Position = vec4(position,1.0);\n"
-"   vertexColor = vec4(0.3f,0.3f,1.0f,1.0f);\n"
+"   vertexColor = color;\n"
 "}\0";
 
 const GLchar* fragmentShaderSource = "#version 330 core \n"
-"in vec4 vertexColor;\n"
-"out vec4 color;\n"
+"in vec3 vertexColor;\n"
+"out vec4 exportColor;\n"
+"uniform vec3 importColor;\n"
 "void main()\n"
 "{\n"
-"   color = vertexColor;\n"
+"   exportColor = vec4(vertexColor,1.0f);\n"
 "}\0";
 
 int main()
@@ -74,6 +78,8 @@ int main()
     GLuint shaderProgram;
     GLuint VAO;
     GLuint EBO;
+    GLfloat timeValue,greenValue,redValue,blueValue;
+    GLint vertexColorLocation;
 
     GLint success;
     GLchar infolog[512];
@@ -162,8 +168,12 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(GLfloat),(GLvoid*)0);
+    //Position
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
+    //Color
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
 
@@ -191,6 +201,14 @@ int main()
     glBindVertexArray(0);
     */
 
+    /*timeValue = glfwGetTime();
+    greenValue = (sin(timeValue)/2+.5);
+    redValue = (cos(timeValue)/2+.5);
+    blueValue = (tan(timeValue)/2+.5);
+    vertexColorLocation = glGetUniformLocation(shaderProgram,"importColor");
+    glUseProgram(shaderProgram);
+    glUniform4f(vertexColorLocation,redValue,greenValue,blueValue,1.0f);*/
+
 
     while (!glfwWindowShouldClose(window))
     {
@@ -211,9 +229,26 @@ int main()
 
         //Draws the triangle
         glUseProgram(shaderProgram);
+
+        timeValue = glfwGetTime();
+        greenValue = (sin(timeValue)/2+.5);
+        redValue = (cos(timeValue)/2+.5);
+        blueValue = (sin(timeValue)/2+.5);
+        vertexColorLocation = glGetUniformLocation(shaderProgram,"importColor");
+        glUseProgram(shaderProgram);
+        glUniform3f(vertexColorLocation,redValue,greenValue,blueValue);
+
+        vertices[3] = redValue;
+        vertices[11] = greenValue;
+        vertices[17] = blueValue;
+
+        //Color
+        glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
+        glEnableVertexAttribArray(1);
+
         glBindVertexArray(VAO);
 
-        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);
+        glDrawElements(GL_TRIANGLES,3,GL_UNSIGNED_INT,0);
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
