@@ -50,6 +50,7 @@ GLuint indices[] =
 //Press ZXC to raise the Z of the triangle and VBN to lower it.
 //Note: none of the triangle adjusts have been implemented.
 
+/*Disabled to test external shaders
 const GLchar* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 position;\n"
 "layout (location = 1) in vec3 color;\n"
@@ -68,6 +69,7 @@ const GLchar* fragmentShaderSource = "#version 330 core \n"
 "{\n"
 "   exportColor = vec4(vertexColor,1.0f);\n"
 "}\0";
+*/
 
 int main()
 {

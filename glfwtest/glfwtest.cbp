@@ -13,6 +13,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add directory="include" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -22,6 +23,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -42,7 +44,9 @@
 			<Add directory="D:/Libraries/glew-1.12.0/lib" />
 			<Add directory="D:/Libraries/glfw-3.1.bin.WIN32/lib-mingw" />
 		</Linker>
+		<Unit filename="include/Shader.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="src/Shader.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
