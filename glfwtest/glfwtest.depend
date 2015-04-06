@@ -4,9 +4,20 @@
 	<GL/glew.h>
 	<GL/glfw3.h>
 
-1427823746 source:d:\semester2project\glfwtest\main.cpp
+1428341898 source:d:\semester2project\glfwtest\main.cpp
 	<iostream>
 	<math.h>
 	<GL/glew.h>
 	<GL/glfw3.h>
+	"Shader.h"
+
+1428339744 d:\semester2project\glfwtest\include\shader.h
+	<string>
+	<fstream>
+	<sstream>
+	<iostream>
+	<GL/glew.h>
+
+1428341580 source:d:\semester2project\glfwtest\src\shader.cpp
+	"Shader.h"
 

@@ -12,7 +12,6 @@ class Shader
         Shader(const GLchar* vertexSourcePath, const GLchar* fragmentSourcePath);
         GLuint Program;
         void Use();
-        virtual ~Shader();
     protected:
     private:
 };

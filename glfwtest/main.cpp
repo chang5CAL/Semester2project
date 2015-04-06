@@ -9,6 +9,7 @@
 
 // GLFW
 #include <GL/glfw3.h>
+#include "Shader.h"
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
@@ -17,6 +18,7 @@ float blue = 1.0f;
 float green = 1.0f;
 //Globals for screen colors
 
+/*
 GLfloat vertex1x = -0.5f;
 GLfloat vertex1y = -0.5f;
 GLfloat vertex1z = 0.0f;
@@ -26,15 +28,16 @@ GLfloat vertex2z = 0.0f;
 GLfloat vertex3x = 0.0f;
 GLfloat vertex3y = 0.5f;
 GLfloat vertex3z = 0.0f;
+*/
 //Global points for the triangle. Is here so points can be modified.
 
 GLfloat timeValue = glfwGetTime();
 
 GLfloat vertices[] =
 {
-    vertex1x,vertex1y,vertex1z, 1.0f, 0.0f, 0.0f,
-    vertex2x,vertex2y,vertex2z, 0.0f, 1.0f, 0.0f,
-    vertex3x,vertex3y,vertex3z, 0.0f, 0.0f, 1.0f
+    0.5f,-0.5f,0.0f, 0.2f, 0.2f, 0.2f,
+   -0.5f,-0.5f,0.0f, 0.2f, 0.2f, 0.2f,
+    0.0f, 0.5f,0.0f, 0.8f, 0.8f, 0.8f
 };
 
 GLuint indices[] =
@@ -80,6 +83,7 @@ int main()
     GLuint shaderProgram;
     GLuint VAO;
     GLuint EBO;
+
     GLfloat timeValue,greenValue,redValue,blueValue;
     GLint vertexColorLocation;
 
@@ -118,17 +122,20 @@ int main()
         return -1;
     }
     //Checks if GLEW successfully initiated.
+    Shader ourShader("shaders/vShader.vs","shaders/fShader.frag");
+    //Location of this is important. It crashes if this is at the start.
+
 
     glfwSetKeyCallback(window,key_callback);
     //Sets what function manages key presses.
-
+    /*
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
     shaderProgram = glCreateProgram();
 
-    glShaderSource(vertexShader,1,&vertexShaderSource,NULL);
-    glShaderSource(fragmentShader, 1,&fragmentShaderSource,NULL);
+    //glShaderSource(vertexShader,1,&vertexShaderSource,NULL);
+    //glShaderSource(fragmentShader, 1,&fragmentShaderSource,NULL);
 
     glCompileShader(vertexShader);
     glCompileShader(fragmentShader);
@@ -157,6 +164,8 @@ int main()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
     //Deletes these shaders, since they are now unneccessary.
+    */
+
 
     glGenVertexArrays(1,&VAO);
     glGenBuffers(1,&VBO);
@@ -165,7 +174,7 @@ int main()
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER,VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),vertices,GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),vertices,GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),indices, GL_STATIC_DRAW);
@@ -229,9 +238,12 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
         //Clears the screen
 
-        //Draws the triangle
-        glUseProgram(shaderProgram);
+        ourShader.Use();
 
+        //Draws the triangle
+        //glUseProgram(shaderProgram);
+
+        /*
         timeValue = glfwGetTime();
         greenValue = (sin(timeValue)/2+.5);
         redValue = (cos(timeValue)/2+.5);
@@ -243,6 +255,7 @@ int main()
         vertices[3] = redValue;
         vertices[11] = greenValue;
         vertices[17] = blueValue;
+        */
 
         //Color
         glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
@@ -313,6 +326,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             blue -= .1f;
         }
     }
+    /*
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         if (vertices[0] < 1.0f)
@@ -439,5 +453,5 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             vertices[8] -= .1f;
 
         }
-    }
+    }*/
 }
