@@ -46,6 +46,17 @@ GLuint indices[] =
     0,1,3
 };
 
+GLfloat texCoords[] =
+{
+    0.0f,0.0f,
+    1.0f,0.0f,
+    0.5f,1.0f
+};
+
+float textureBorderColor[] =
+{
+    1.0f,1.0f,0.0f,1.0f
+};
 
 //Press QWE to raise the color and ASD to lower it.
 //Press RTY to raise the X of the triangle and FGH to lower it.
@@ -166,6 +177,13 @@ int main()
     //Deletes these shaders, since they are now unneccessary.
     */
 
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_MIRRORED_REPEAT);
+
+    glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,textureBorderColor);
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 
     glGenVertexArrays(1,&VAO);
     glGenBuffers(1,&VBO);
