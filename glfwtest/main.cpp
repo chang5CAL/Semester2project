@@ -9,6 +9,8 @@
 
 // GLFW
 #include <GL/glfw3.h>
+#include <SOIL.h>
+
 #include "Shader.h"
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -35,15 +37,16 @@ GLfloat timeValue = glfwGetTime();
 
 GLfloat vertices[] =
 {
-    0.5f,-0.5f,0.0f, 0.2f, 0.2f, 0.2f,
-   -0.5f,-0.5f,0.0f, 0.2f, 0.2f, 0.2f,
-    0.0f, 0.5f,0.0f, 0.8f, 0.8f, 0.8f
+    0.5f, 0.5f,0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f,
+    0.5f,-0.5f,0.0f,  0.2f, 0.2f, 0.2f,  1.0f, 0.0f,
+   -0.5f,-0.5f,0.0f,  0.2f, 0.2f, 0.2f,  0.0f, 0.0f,
+   -0.5f, 0.5f,0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f
 };
 
 GLuint indices[] =
 {
-    0,1,2,
-    0,1,3
+    0,1,3,
+    1,2,3
 };
 
 GLfloat texCoords[] =
@@ -94,6 +97,10 @@ int main()
     GLuint shaderProgram;
     GLuint VAO;
     GLuint EBO;
+    GLuint texture;
+
+    int width,height;
+    unsigned char* image = SOIL_load_image("container.jpg",&width,&height,0,SOIL_LOAD_RGB);
 
     GLfloat timeValue,greenValue,redValue,blueValue;
     GLint vertexColorLocation;
@@ -198,16 +205,28 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),indices, GL_STATIC_DRAW);
 
     //Position
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)0);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
     //Color
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
+    //Texture
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(6* sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
 
 
     glBindVertexArray(0);
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB, GL_UNSIGNED_BYTE,image);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    SOIL_free_image_data(image);
+    glBindTexture(GL_TEXTURE_2D,0);
 
     /////////////////////////////////////////////////////////
 
@@ -275,13 +294,14 @@ int main()
         vertices[17] = blueValue;
         */
 
+
         //Color
         glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
         glEnableVertexAttribArray(1);
 
+        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO);
-
-        glDrawElements(GL_TRIANGLES,3,GL_UNSIGNED_INT,0);
+        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);

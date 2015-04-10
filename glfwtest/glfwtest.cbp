@@ -41,6 +41,7 @@
 			<Add library="D:\CodeBlocks\MinGW\lib\glew32s.lib" />
 			<Add library="D:\CodeBlocks\MinGW\lib\glfw3dll.a" />
 			<Add library="D:\CodeBlocks\MinGW\lib\libopengl32.a" />
+			<Add library="D:\CodeBlocks\MinGW\lib\libSOIL.a" />
 			<Add directory="D:/Libraries/glew-1.12.0/lib" />
 			<Add directory="D:/Libraries/glfw-3.1.bin.WIN32/lib-mingw" />
 		</Linker>
