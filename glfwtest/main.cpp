@@ -97,7 +97,7 @@ int main()
     GLuint shaderProgram;
     GLuint VAO;
     GLuint EBO;
-    GLuint texture;
+    GLuint texture1,texture2;
 
     int width,height;
     unsigned char* image = SOIL_load_image("container.jpg",&width,&height,0,SOIL_LOAD_RGB);
@@ -219,12 +219,27 @@ int main()
 
     glBindVertexArray(0);
 
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
 
     glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB, GL_UNSIGNED_BYTE,image);
     glGenerateMipmap(GL_TEXTURE_2D);
 
+    SOIL_free_image_data(image);
+    glBindTexture(GL_TEXTURE_2D,0);
+
+    glGenTextures(1,&texture2);
+    glBindTexture(GL_TEXTURE_2D,texture2);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+
+    image = SOIL_load_image("awesomeface.png",&width,&height,0,SOIL_LOAD_RGB);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,image);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
     SOIL_free_image_data(image);
     glBindTexture(GL_TEXTURE_2D,0);
 
@@ -275,6 +290,16 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
         //Clears the screen
 
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glUniform1i(glGetUniformLocation(ourShader.Program,"ourTexture1"),0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
+        glUniform1i(glGetUniformLocation(ourShader.Program,"ourTexture2"),1);
+        //Does not support png's transparency.
+
         ourShader.Use();
 
         //Draws the triangle
@@ -296,10 +321,12 @@ int main()
 
 
         //Color
+
+
         glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
         glEnableVertexAttribArray(1);
 
-        glBindTexture(GL_TEXTURE_2D, texture);
+        //glBindTexture(GL_TEXTURE_2D, texture2);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);
         glBindVertexArray(0);
