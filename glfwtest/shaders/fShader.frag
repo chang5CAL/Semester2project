@@ -10,5 +10,5 @@ uniform sampler2D ourTexture2;
 void main()
 {
    exportColor = mix((texture(ourTexture1,texExCoord)*vec4(vertexColor,1.0f)),
-			texture(ourTexture2,texExCoord),0.5);
+			texture(ourTexture2,texExCoord),0.2);
 }

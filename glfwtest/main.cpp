@@ -11,6 +11,11 @@
 #include <GL/glfw3.h>
 #include <SOIL.h>
 
+//GLM
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Shader.h"
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -98,6 +103,14 @@ int main()
     GLuint VAO;
     GLuint EBO;
     GLuint texture1,texture2;
+    glm::vec4 vec(1.0f,0.0f,0.0f,1.0f);
+    glm::mat4 trans;
+
+    trans = glm::translate(trans, glm::vec3(0.0f,0.0f,0.0f));
+    //Changes where the object is with respect to the center, tutorial says 1.0,0.0,0.0, but that pushes it
+    //All the way to the right
+    vec = trans*vec;
+    std::cout << vec.x << vec.y << vec.z << std::endl;
 
     int width,height;
     unsigned char* image = SOIL_load_image("container.jpg",&width,&height,0,SOIL_LOAD_RGB);
@@ -273,6 +286,9 @@ int main()
     glUniform4f(vertexColorLocation,redValue,greenValue,blueValue,1.0f);*/
 
 
+    trans = glm::rotate(trans,90.0f,glm::vec3(0.0f,0.0f,1.0f));
+    //trans = glm::scale(trans,glm::vec3(0.5f,0.5f,0.5f));
+
     while (!glfwWindowShouldClose(window))
     {
 
@@ -299,6 +315,15 @@ int main()
         glBindTexture(GL_TEXTURE_2D, texture2);
         glUniform1i(glGetUniformLocation(ourShader.Program,"ourTexture2"),1);
         //Does not support png's transparency.
+
+        //trans = glm::translate(trans,glm::vec3(0.5f,-0.5f,0.0f));
+        //Again, pushes the square too far off the screen.
+        glm::mat4 trans;
+        //Not generating here makes the square spin extremely quickly
+        trans = glm::rotate(trans,(GLfloat)glfwGetTime()*50.0f,glm::vec3(0.0f,0.0f,1.0f));
+
+        GLuint transformLoc = glGetUniformLocation(ourShader.Program,"transform");
+        glUniformMatrix4fv(transformLoc,1,GL_FALSE,glm::value_ptr(trans));
 
         ourShader.Use();
 
