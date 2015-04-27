@@ -4,7 +4,7 @@
 	<GL/glew.h>
 	<GL/glfw3.h>
 
-1429551702 source:d:\semester2project\glfwtest\main.cpp
+1430153156 source:d:\semester2project\glfwtest\main.cpp
 	<iostream>
 	<math.h>
 	<GL/glew.h>
@@ -25,12 +25,15 @@
 1428341580 source:d:\semester2project\glfwtest\src\shader.cpp
 	"Shader.h"
 
-1429035852 source:i:\semester2project\glfwtest\main.cpp
+1429727002 source:i:\semester2project\glfwtest\main.cpp
 	<iostream>
 	<math.h>
 	<GL/glew.h>
 	<GL/glfw3.h>
 	<SOIL.h>
+	<glm/glm.hpp>
+	<glm/gtc/matrix_transform.hpp>
+	<glm/gtc/type_ptr.hpp>
 	"Shader.h"
 
 1428343344 i:\semester2project\glfwtest\include\shader.h

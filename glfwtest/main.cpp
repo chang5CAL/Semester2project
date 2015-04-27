@@ -42,11 +42,69 @@ GLfloat timeValue = glfwGetTime();
 
 GLfloat vertices[] =
 {
+    /*
     0.5f, 0.5f,0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f,
     0.5f,-0.5f,0.0f,  0.2f, 0.2f, 0.2f,  1.0f, 0.0f,
    -0.5f,-0.5f,0.0f,  0.2f, 0.2f, 0.2f,  0.0f, 0.0f,
    -0.5f, 0.5f,0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f
+   */
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
+//Makes a single cube
+
+glm::vec3 cubePositions[] = {
+  glm::vec3( 0.0f,  0.0f,  0.0f),
+  glm::vec3( 2.0f,  5.0f, -15.0f),
+  glm::vec3(-1.5f, -2.2f, -2.5f),
+  glm::vec3(-3.8f, -2.0f, -12.3f),
+  glm::vec3( 2.4f, -0.4f, -3.5f),
+  glm::vec3(-1.7f,  3.0f, -7.5f),
+  glm::vec3( 1.3f, -2.0f, -2.5f),
+  glm::vec3( 1.5f,  2.0f, -2.5f),
+  glm::vec3( 1.5f,  0.2f, -1.5f),
+  glm::vec3(-1.3f,  1.0f, -1.5f)
+};
+//Makes multiple positions for cubes
 
 GLuint indices[] =
 {
@@ -106,7 +164,19 @@ int main()
     glm::vec4 vec(1.0f,0.0f,0.0f,1.0f);
     glm::mat4 trans;
 
-    trans = glm::translate(trans, glm::vec3(0.0f,0.0f,0.0f));
+    //glm::vec3 cameraPos(0.0f,0.0f,3.0f);
+    //glm::vec3 cameraTarget = glm::vec3(0.0f,0.0f,0.0f);
+    //glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+
+    //glm::vec3 up = glm::vec3(0.0f,1.0f,0.0f);
+    //glm::vec3 cameraRight = glm::normalize(glm::cross(up,cameraDirection));
+    //glm::vec3 cameraUp = glm::cross(cameraDirection,cameraRight);
+
+    //glm::mat4 view;
+    //view = glm::lookAt(glm::vec3(0.0f,0.0f,3.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,1.0f,0.0f));
+
+
+    //trans = glm::translate(trans, glm::vec3(0.0f,0.0f,0.0f));
     //Changes where the object is with respect to the center, tutorial says 1.0,0.0,0.0, but that pushes it
     //All the way to the right
     vec = trans*vec;
@@ -218,19 +288,20 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),indices, GL_STATIC_DRAW);
 
     //Position
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)0);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,5*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
     //Color
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
+    //glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
+    //glEnableVertexAttribArray(1);
     //Texture
-    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(6* sizeof(GLfloat)));
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,5*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
     glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
 
 
-    glBindVertexArray(0);
+
+    //glBindVertexArray(0);
 
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
@@ -289,6 +360,9 @@ int main()
     trans = glm::rotate(trans,90.0f,glm::vec3(0.0f,0.0f,1.0f));
     //trans = glm::scale(trans,glm::vec3(0.5f,0.5f,0.5f));
 
+
+    glEnable(GL_DEPTH_TEST);
+
     while (!glfwWindowShouldClose(window))
     {
 
@@ -303,7 +377,7 @@ int main()
         glfwPollEvents();
 
         glClearColor(red,green,blue,1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //Clears the screen
 
 
@@ -344,16 +418,46 @@ int main()
         vertices[17] = blueValue;
         */
 
+        GLfloat radius = 10.0f;
+        GLfloat camX = sin(glfwGetTime())*radius;
+        GLfloat camZ = cos(glfwGetTime())*radius;
+        glm::mat4 view;
+        view = glm::lookAt(glm::vec3(camX,0.0f,camZ),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,1.0f,0.0f));
+
 
         //Color
+        glm::mat4 model;
+        glm::mat4 projection;
+        model = glm::rotate(model,(GLfloat)glfwGetTime() * 50.0f,glm::vec3(0.5f,1.0f,0.0f));
+        //view = glm::translate(view,glm::vec3(0.0f,0.0f,-3.0f));
+        projection = glm::perspective(45.0f,(GLfloat)800/(GLfloat)600,.1f,100.0f);
+
+        GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
+        GLint viewLoc = glGetUniformLocation(ourShader.Program, "view");
+        GLint projLoc = glGetUniformLocation(ourShader.Program, "projection");
+
+        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(model));
+        glUniformMatrix4fv(viewLoc,1,GL_FALSE,glm::value_ptr(view));
+        glUniformMatrix4fv(projLoc,1,GL_FALSE,glm::value_ptr(projection));
 
 
-        glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
-        glEnableVertexAttribArray(1);
+        //glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,36*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
+        //glEnableVertexAttribArray(1);
 
         //glBindTexture(GL_TEXTURE_2D, texture2);
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);
+        //glDrawElements(GL_TRIANGLES,36,GL_UNSIGNED_INT,0);
+        for (GLuint i = 0;i<10;i++)
+        {
+            glm::mat4 model;
+            model = glm::translate(model,cubePositions[i]);
+            GLfloat angle = 20.0f*(i+1);
+            model = glm::rotate(model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f));
+            glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(model));
+
+            glDrawArrays(GL_TRIANGLES,0,36);
+        }
+
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
