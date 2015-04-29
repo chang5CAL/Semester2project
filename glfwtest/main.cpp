@@ -1,3 +1,4 @@
+//Camera's goofed. Fix that crap.n
 #include <iostream>
 #include <math.h>
 //Imports math for formula reasons
@@ -19,6 +20,11 @@
 #include "Shader.h"
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+//Gets key inputs
+void move_camera();
+//Moves the camera
+void mousee_callback(GLFWwindow* window,double xpos,double ypos);
+//Gets mouse movements
 
 float red = 1.0f;
 float blue = 1.0f;
@@ -130,26 +136,24 @@ float textureBorderColor[] =
 //Press ZXC to raise the Z of the triangle and VBN to lower it.
 //Note: none of the triangle adjusts have been implemented.
 
-/*Disabled to test external shaders
-const GLchar* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 position;\n"
-"layout (location = 1) in vec3 color;\n"
-"out vec3 vertexColor;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(position,1.0);\n"
-"   vertexColor = color;\n"
-"}\0";
+glm::vec3 cameraPos = glm::vec3(0.0f,0.0f,0.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f,0.0f,-1.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f,1.0f,0.0f);
+//Sets up position of the camera
 
-const GLchar* fragmentShaderSource = "#version 330 core \n"
-"in vec3 vertexColor;\n"
-"out vec4 exportColor;\n"
-"uniform vec3 importColor;\n"
-"void main()\n"
-"{\n"
-"   exportColor = vec4(vertexColor,1.0f);\n"
-"}\0";
-*/
+bool keys[1024];
+//Stores key input
+
+GLfloat deltaTime = 0.0f;
+GLfloat lastFrame = 0.0f;
+//Establishes time
+
+GLfloat lastX = 600;
+GLfloat lastY = 300;
+GLfloat yaw = -90.0f;
+GLfloat pitch = 0.0f;
+bool firstMouse = true;
+//Creates variables for
 
 int main()
 {
@@ -164,13 +168,14 @@ int main()
     glm::vec4 vec(1.0f,0.0f,0.0f,1.0f);
     glm::mat4 trans;
 
-    //glm::vec3 cameraPos(0.0f,0.0f,3.0f);
+    //glm::vec3 cameraPos = glm::vec3(0.0f,0.0f,3.0f);
     //glm::vec3 cameraTarget = glm::vec3(0.0f,0.0f,0.0f);
     //glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
 
     //glm::vec3 up = glm::vec3(0.0f,1.0f,0.0f);
     //glm::vec3 cameraRight = glm::normalize(glm::cross(up,cameraDirection));
-    //glm::vec3 cameraUp = glm::cross(cameraDirection,cameraRight);
+    //glm::vec3 cameraUp = glm::vec3(0.0f,0.0f,-1.0f);
+    //glm::vec3 cameraFront = glm::vec3(0.0f,1.0f,0.0f);
 
     //glm::mat4 view;
     //view = glm::lookAt(glm::vec3(0.0f,0.0f,3.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,1.0f,0.0f));
@@ -190,6 +195,7 @@ int main()
 
     GLint success;
     GLchar infolog[512];
+
 
     glfwInit();
     glewInit();
@@ -225,6 +231,7 @@ int main()
     //Checks if GLEW successfully initiated.
     Shader ourShader("shaders/vShader.vs","shaders/fShader.frag");
     //Location of this is important. It crashes if this is at the start.
+    glfwSetInputMode(window,GLFW_CURSOR,GLFW_CURSOR_DISABLED);
 
 
     glfwSetKeyCallback(window,key_callback);
@@ -275,6 +282,8 @@ int main()
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 
+    //Generates and binds the vertex
+
     glGenVertexArrays(1,&VAO);
     glGenBuffers(1,&VBO);
     glGenBuffers(1,&EBO);
@@ -303,6 +312,7 @@ int main()
 
     //glBindVertexArray(0);
 
+    //Generates and binds the textures
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
 
@@ -365,6 +375,9 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
+        GLfloat currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
 
         //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
         //Sets the polygons as unfilled
@@ -375,6 +388,7 @@ int main()
         //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),vertices,GL_DYNAMIC_DRAW);
 
         glfwPollEvents();
+        move_camera();
 
         glClearColor(red,green,blue,1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -415,14 +429,14 @@ int main()
 
         vertices[3] = redValue;
         vertices[11] = greenValue;
-        vertices[17] = blueValue;
+        vertices[17] = blueValue
         */
 
-        GLfloat radius = 10.0f;
+        /*GLfloat radius = 10.0f;
         GLfloat camX = sin(glfwGetTime())*radius;
-        GLfloat camZ = cos(glfwGetTime())*radius;
+        GLfloat camZ = cos(glfwGetTime())*radius;*/
         glm::mat4 view;
-        view = glm::lookAt(glm::vec3(camX,0.0f,camZ),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,1.0f,0.0f));
+        view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
 
 
         //Color
@@ -449,6 +463,7 @@ int main()
         //glDrawElements(GL_TRIANGLES,36,GL_UNSIGNED_INT,0);
         for (GLuint i = 0;i<10;i++)
         {
+            //Draws the cubes
             glm::mat4 model;
             model = glm::translate(model,cubePositions[i]);
             GLfloat angle = 20.0f*(i+1);
@@ -478,174 +493,121 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     {
         glfwSetWindowShouldClose(window,GL_TRUE);
     }
-    if (key == GLFW_KEY_Q && action == GLFW_PRESS)
+    if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         if (red < 1)
         {
             red += .1f;
         }
     }
-    if (key == GLFW_KEY_W && action == GLFW_PRESS)
+    if (key == GLFW_KEY_T && action == GLFW_PRESS)
     {
         if (green < 1)
         {
             green += .1f;
         }
     }
-    if (key == GLFW_KEY_E && action == GLFW_PRESS)
+    if (key == GLFW_KEY_Y && action == GLFW_PRESS)
     {
         if (blue < 1)
         {
             blue += .1f;
         }
     }
-    if (key == GLFW_KEY_A && action == GLFW_PRESS)
+    if (key == GLFW_KEY_F && action == GLFW_PRESS)
     {
         if (red > 0)
         {
             red -= .1f;
         }
     }
-    if (key == GLFW_KEY_S && action == GLFW_PRESS)
+    if (key == GLFW_KEY_G && action == GLFW_PRESS)
     {
         if (green > 0)
         {
             green -= .1f;
         }
     }
-    if (key == GLFW_KEY_D && action == GLFW_PRESS)
+    if (key == GLFW_KEY_H && action == GLFW_PRESS)
     {
         if (blue > 0)
         {
             blue -= .1f;
         }
     }
-    /*
-    if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    if (action == GLFW_PRESS)
     {
-        if (vertices[0] < 1.0f)
-        {
-            vertices[0] += .1f;
-        }
+        //Allows action to occur so long as the key is held
+        //Also allows multiple inputs
+        keys[key] = true;
     }
-    if (key == GLFW_KEY_T && action == GLFW_PRESS)
+    else if (action == GLFW_RELEASE)
     {
-        if (vertices[3] < 1.0f)
-        {
-            vertices[3] += .1f;
-        }
+        keys[key] = false;
     }
-    if (key == GLFW_KEY_Y && action == GLFW_PRESS)
-    {
-        if (vertices[6] < 1.0f)
-        {
-            vertices[6] += .1f;
-        }
-    }
-    if (key == GLFW_KEY_F && action == GLFW_PRESS)
-    {
-        if (vertices[0] > -1.0f)
-        {
-            vertices[0] -= .1f;
-        }
-    }
-    if (key == GLFW_KEY_G && action == GLFW_PRESS)
-    {
-        if (vertices[3] > -1.0f)
-        {
-            vertices[3] -= .1f;
-        }
-    }
-    if (key == GLFW_KEY_H && action == GLFW_PRESS)
-    {
-        if (vertices[6] > -1.0f)
-        {
-            vertices[6] -= .1f;
-        }
-    }
-    if (key == GLFW_KEY_U && action == GLFW_PRESS)
-    {
-        if (vertices[1] < 1.0f)
-        {
-            vertices[1] += .1f;
-        }
-    }
-    if (key == GLFW_KEY_I && action == GLFW_PRESS)
-    {
-        if (vertices[4] < 1.0f)
-        {
-            vertices[4] += .1f;
-        }
-    }
-    if (key == GLFW_KEY_O && action == GLFW_PRESS)
-    {
-        if (vertices[7] < 1.0f)
-        {
-            vertices[7] += .1f;
-        }
-    }
-    if (key == GLFW_KEY_J && action == GLFW_PRESS)
-    {
-        if (vertices[1] > -1.0f)
-        {
-            vertices[1] -= .1f;
-        }
-    }
-    if (key == GLFW_KEY_K && action == GLFW_PRESS)
-    {
-        if (vertices[4] > -1.0f)
-        {
-            vertices[4] -= .1f;
-        }
-    }
-    if (key == GLFW_KEY_L && action == GLFW_PRESS)
-    {
-        if (vertices[7] > -1.0f)
-        {
-            vertices[7] -= .1f;
-        }
-    }
-    if (key == GLFW_KEY_Z && action == GLFW_PRESS)
-    {
-        if (vertices[2] < 1.0f)
-        {
-            vertices[2] += .1f;
-        }
-    }
-    if (key == GLFW_KEY_X && action == GLFW_PRESS)
-    {
-        if (vertices[5] < 1.0f)
-        {
-            vertices[5] += .1f;
-        }
-    }
-    if (key == GLFW_KEY_C && action == GLFW_PRESS)
-    {
-        if (vertices[8] < 1.0f)
-        {
-            vertices[8] += .1f;
-        }
-    }
-    if (key == GLFW_KEY_V && action == GLFW_PRESS)
-    {
-        if (vertices[2] > -1.0f)
-        {
-            vertices[2] -= .1f;
-        }
-    }
-    if (key == GLFW_KEY_B && action == GLFW_PRESS)
-    {
-        if (vertices[5] > -1.0f)
-        {
-            vertices[5] -= .1f;
-        }
-    }
-    if (key == GLFW_KEY_N && action == GLFW_PRESS)
-    {
-        if (vertices[8] > -1.0f)
-        {
-            vertices[8] -= .1f;
+}
 
-        }
-    }*/
+void move_camera()
+{
+    //Moves the camera
+    GLfloat camSpeed = 5.0f * deltaTime;
+    if (keys[GLFW_KEY_W])
+    {
+        cameraPos += camSpeed * cameraFront;
+    }
+    if (keys[GLFW_KEY_S])
+    {
+        cameraPos -= camSpeed * cameraFront;
+    }
+    if (keys[GLFW_KEY_A])
+    {
+        cameraPos -= glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed;
+    }
+    if (keys[GLFW_KEY_D])
+    {
+        cameraPos += glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed;
+    }
+}
+
+void mousee_callback(GLFWwindow* window,double xpos,double ypos)
+{
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    GLfloat xoffset = xpos - lastX;
+    GLfloat yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+    //Finds the difference between frames
+
+    GLfloat sensitivity = .05f;
+    //Sets the sensitivity of the mouse
+
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+    //offsets the offset by the sensitivity
+
+    yaw += xoffset;
+    pitch -= yoffset;
+
+    if (pitch > 89.0f)
+    {
+        pitch = 89.0f;
+    }
+    if (pitch < -89.0f)
+    {
+        pitch = -89.0f;
+    }
+    //Sets caps for the Y values
+
+    glm::vec3 frontCam;
+    frontCam.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    frontCam.y = sin(glm::radians(pitch));
+    frontCam.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(frontCam);
+
 }
