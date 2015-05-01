@@ -1,14 +1,12 @@
 #version 330 core
-in vec3 vertexColor;
-in vec2 texExCoord;
+in vec2 TexCoord;
 
-out vec4 exportColor;
+out vec4 color;
 
 uniform sampler2D ourTexture1;
 uniform sampler2D ourTexture2;
 
 void main()
 {
-   exportColor = mix((texture(ourTexture1,texExCoord)*vec4(vertexColor,1.0f)),
-			texture(ourTexture2,texExCoord),0.2);
+    color = mix(texture(ourTexture1, TexCoord), texture(ourTexture2, TexCoord), 0.2);
 }

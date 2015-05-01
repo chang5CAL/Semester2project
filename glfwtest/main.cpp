@@ -1,4 +1,5 @@
-//Camera's goofed. Fix that crap.n
+//Camera has some odd dynamics. Left goes up,right goes down, up goes left, down goes right.
+//And then that breaks and left/right go in a weird circle.
 #include <iostream>
 #include <math.h>
 //Imports math for formula reasons
@@ -23,14 +24,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 //Gets key inputs
 void move_camera();
 //Moves the camera
-void mousee_callback(GLFWwindow* window,double xpos,double ypos);
+void mouse_callback(GLFWwindow* window,double xpos,double ypos);
 //Gets mouse movements
+void scroll_callback(GLFWwindow* window,double xoffset,double yoffset);
 
 float red = 1.0f;
-float blue = 1.0f;
 float green = 1.0f;
-//Globals for screen colors
+float blue = 1.0f;
 
+const GLuint WIDTH = 800, HEIGHT = 600;
 /*
 GLfloat vertex1x = -0.5f;
 GLfloat vertex1y = -0.5f;
@@ -136,10 +138,22 @@ float textureBorderColor[] =
 //Press ZXC to raise the Z of the triangle and VBN to lower it.
 //Note: none of the triangle adjusts have been implemented.
 
-glm::vec3 cameraPos = glm::vec3(0.0f,0.0f,0.0f);
+glm::vec3 cameraPos = glm::vec3(0.0f,0.0f,3.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f,0.0f,-1.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f,1.0f,0.0f);
 //Sets up position of the camera
+
+
+
+GLfloat lastX = WIDTH/2;
+GLfloat lastY = HEIGHT/2;
+
+GLfloat yaw = 0.0f;
+GLfloat pitch = 0.0f;
+//Creates variables for Camera movements
+
+GLfloat aspect = 45.0f;
+//Sets FOV
 
 bool keys[1024];
 //Stores key input
@@ -147,13 +161,6 @@ bool keys[1024];
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 //Establishes time
-
-GLfloat lastX = 600;
-GLfloat lastY = 300;
-GLfloat yaw = -90.0f;
-GLfloat pitch = 0.0f;
-bool firstMouse = true;
-//Creates variables for
 
 int main()
 {
@@ -210,10 +217,10 @@ int main()
     //Ensures OpenGL will only run using new functionality.
     glfwWindowHint(GLFW_RESIZABLE,GL_TRUE);
     //Sets if the window is resizeable.
-    glViewport(0,0,800,600);
+    glViewport(0,0,WIDTH,HEIGHT);
     //Allows OpenGL to know the initial coordinate and the size of the window.
 
-    GLFWwindow* window = glfwCreateWindow(800,600,"Window Test", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(WIDTH,HEIGHT,"Window Test", NULL, NULL);
     glfwMakeContextCurrent(window);
 
     if (window == NULL)
@@ -236,6 +243,9 @@ int main()
 
     glfwSetKeyCallback(window,key_callback);
     //Sets what function manages key presses.
+    glfwSetCursorPosCallback(window, mouse_callback);
+    //Sets what function manages mouse movement.
+    glfwSetScrollCallback(window,scroll_callback);
     /*
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -440,17 +450,17 @@ int main()
 
 
         //Color
-        glm::mat4 model;
+        //glm::mat4 model;
         glm::mat4 projection;
-        model = glm::rotate(model,(GLfloat)glfwGetTime() * 50.0f,glm::vec3(0.5f,1.0f,0.0f));
+        //model = glm::rotate(model,(GLfloat)glfwGetTime() * 50.0f,glm::vec3(0.5f,1.0f,0.0f));
         //view = glm::translate(view,glm::vec3(0.0f,0.0f,-3.0f));
-        projection = glm::perspective(45.0f,(GLfloat)800/(GLfloat)600,.1f,100.0f);
+        projection = glm::perspective(aspect,(GLfloat)WIDTH/(GLfloat)HEIGHT,.1f,100.0f);
 
         GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
         GLint viewLoc = glGetUniformLocation(ourShader.Program, "view");
         GLint projLoc = glGetUniformLocation(ourShader.Program, "projection");
 
-        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(model));
+        //glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(model));
         glUniformMatrix4fv(viewLoc,1,GL_FALSE,glm::value_ptr(view));
         glUniformMatrix4fv(projLoc,1,GL_FALSE,glm::value_ptr(projection));
 
@@ -468,6 +478,7 @@ int main()
             model = glm::translate(model,cubePositions[i]);
             GLfloat angle = 20.0f*(i+1);
             model = glm::rotate(model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f));
+            //model = model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f);
             glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(model));
 
             glDrawArrays(GL_TRIANGLES,0,36);
@@ -535,15 +546,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             blue -= .1f;
         }
     }
-    if (action == GLFW_PRESS)
+    if (key > 0 && key < 1024)
     {
-        //Allows action to occur so long as the key is held
-        //Also allows multiple inputs
-        keys[key] = true;
-    }
-    else if (action == GLFW_RELEASE)
-    {
-        keys[key] = false;
+        if (action == GLFW_PRESS)
+        {
+            //Allows action to occur so long as the key is held
+            //Also allows multiple inputs
+            keys[key] = true;
+        }
+        else if (action == GLFW_RELEASE)
+        {
+            keys[key] = false;
+        }
     }
 }
 
@@ -569,7 +583,8 @@ void move_camera()
     }
 }
 
-void mousee_callback(GLFWwindow* window,double xpos,double ypos)
+bool firstMouse = true;
+void mouse_callback(GLFWwindow* window,double xpos,double ypos)
 {
     if (firstMouse)
     {
@@ -592,7 +607,7 @@ void mousee_callback(GLFWwindow* window,double xpos,double ypos)
     //offsets the offset by the sensitivity
 
     yaw += xoffset;
-    pitch -= yoffset;
+    pitch += yoffset;
 
     if (pitch > 89.0f)
     {
@@ -604,10 +619,26 @@ void mousee_callback(GLFWwindow* window,double xpos,double ypos)
     }
     //Sets caps for the Y values
 
-    glm::vec3 frontCam;
-    frontCam.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    frontCam.y = sin(glm::radians(pitch));
-    frontCam.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(frontCam);
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(front);
 
+}
+
+void scroll_callback(GLFWwindow* window,double xoffset,double yoffset)
+{
+    if (aspect >= 1.0f && aspect <= 45.0f)
+    {
+        aspect -= yoffset;
+    }
+    if (aspect <= 1.0f)
+    {
+        aspect = 1.0f;
+    }
+    if (aspect > 45.0f)
+    {
+        aspect = 45.0f;
+    }
 }
