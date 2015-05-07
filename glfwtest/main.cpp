@@ -1,5 +1,12 @@
-//Camera has some odd dynamics. Left goes up,right goes down, up goes left, down goes right.
-//And then that breaks and left/right go in a weird circle.
+//Collision notes:
+//I need to find the position of the cubes
+//Then I need to camera position (should be cameraPos)
+//Then I need to check if they collide, and if so, prevent movement.
+//First off, I should just find the position of a cube.
+//The last column is what I should look at, it appears the others are just defining the cube's dimensions.
+//For future reference, a screenshot of the cube's matrices are in the folder.
+
+//Note: All non-collision code was copied from learnopengl.com
 #include <iostream>
 #include <math.h>
 //Imports math for formula reasons
@@ -33,40 +40,22 @@ float green = 1.0f;
 float blue = 1.0f;
 
 const GLuint WIDTH = 800, HEIGHT = 600;
-/*
-GLfloat vertex1x = -0.5f;
-GLfloat vertex1y = -0.5f;
-GLfloat vertex1z = 0.0f;
-GLfloat vertex2x = 0.5f;
-GLfloat vertex2y = -0.5f;
-GLfloat vertex2z = 0.0f;
-GLfloat vertex3x = 0.0f;
-GLfloat vertex3y = 0.5f;
-GLfloat vertex3z = 0.0f;
-*/
-//Global points for the triangle. Is here so points can be modified.
 
 GLfloat timeValue = glfwGetTime();
 
 GLfloat vertices[] =
 {
-    /*
-    0.5f, 0.5f,0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f,
-    0.5f,-0.5f,0.0f,  0.2f, 0.2f, 0.2f,  1.0f, 0.0f,
-   -0.5f,-0.5f,0.0f,  0.2f, 0.2f, 0.2f,  0.0f, 0.0f,
-   -0.5f, 0.5f,0.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f
-   */
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
@@ -77,40 +66,40 @@ GLfloat vertices[] =
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
     -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+    0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
 
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
-//Makes a single cube
 
-glm::vec3 cubePositions[] = {
-  glm::vec3( 0.0f,  0.0f,  0.0f),
-  glm::vec3( 2.0f,  5.0f, -15.0f),
-  glm::vec3(-1.5f, -2.2f, -2.5f),
-  glm::vec3(-3.8f, -2.0f, -12.3f),
-  glm::vec3( 2.4f, -0.4f, -3.5f),
-  glm::vec3(-1.7f,  3.0f, -7.5f),
-  glm::vec3( 1.3f, -2.0f, -2.5f),
-  glm::vec3( 1.5f,  2.0f, -2.5f),
-  glm::vec3( 1.5f,  0.2f, -1.5f),
-  glm::vec3(-1.3f,  1.0f, -1.5f)
+glm::vec3 cubePositions[] =
+{
+    glm::vec3( 0.0f,  0.0f,  0.0f),
+    glm::vec3( 2.0f,  5.0f, -15.0f),
+    glm::vec3(-1.5f, -2.2f, -2.5f),
+    glm::vec3(-3.8f, -2.0f, -12.3f),
+    glm::vec3( 2.4f, -0.4f, -3.5f),
+    glm::vec3(-1.7f,  3.0f, -7.5f),
+    glm::vec3( 1.3f, -2.0f, -2.5f),
+    glm::vec3( 1.5f,  2.0f, -2.5f),
+    glm::vec3( 1.5f,  0.2f, -1.5f),
+    glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 //Makes multiple positions for cubes
 
@@ -132,24 +121,18 @@ float textureBorderColor[] =
     1.0f,1.0f,0.0f,1.0f
 };
 
-//Press QWE to raise the color and ASD to lower it.
-//Press RTY to raise the X of the triangle and FGH to lower it.
-//Press UIO to raise the Y of the triangle and JKL to lower it.
-//Press ZXC to raise the Z of the triangle and VBN to lower it.
-//Note: none of the triangle adjusts have been implemented.
-
 glm::vec3 cameraPos = glm::vec3(0.0f,0.0f,3.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f,0.0f,-1.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f,1.0f,0.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f,1.0f,0.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f,0.0f,-1.0f);
 //Sets up position of the camera
+//Found the error: Front and Up had the reversed values.
 
-
+GLfloat yaw = -90.0f;
+GLfloat pitch = 0.0f;
+//Sets direction of where camera is pointed.
 
 GLfloat lastX = WIDTH/2;
 GLfloat lastY = HEIGHT/2;
-
-GLfloat yaw = 0.0f;
-GLfloat pitch = 0.0f;
 //Creates variables for Camera movements
 
 GLfloat aspect = 45.0f;
@@ -161,14 +144,15 @@ bool keys[1024];
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 //Establishes time
+bool collision;
 
 int main()
 {
     //Array to draw the vertexes.
     GLuint VBO;
-    GLuint vertexShader;
-    GLuint fragmentShader;
-    GLuint shaderProgram;
+    //GLuint vertexShader;
+    //GLuint fragmentShader;
+    //GLuint shaderProgram;
     GLuint VAO;
     GLuint EBO;
     GLuint texture1,texture2;
@@ -192,16 +176,16 @@ int main()
     //Changes where the object is with respect to the center, tutorial says 1.0,0.0,0.0, but that pushes it
     //All the way to the right
     vec = trans*vec;
-    std::cout << vec.x << vec.y << vec.z << std::endl;
+    //std::cout << vec.x << vec.y << vec.z << std::endl;
 
     int width,height;
     unsigned char* image = SOIL_load_image("container.jpg",&width,&height,0,SOIL_LOAD_RGB);
 
-    GLfloat timeValue,greenValue,redValue,blueValue;
-    GLint vertexColorLocation;
+    //GLfloat timeValue,greenValue,redValue,blueValue;
+    //GLint vertexColorLocation;
 
-    GLint success;
-    GLchar infolog[512];
+    //GLint success;
+    //GLchar infolog[512];
 
 
     glfwInit();
@@ -236,9 +220,7 @@ int main()
         return -1;
     }
     //Checks if GLEW successfully initiated.
-    Shader ourShader("shaders/vShader.vs","shaders/fShader.frag");
     //Location of this is important. It crashes if this is at the start.
-    glfwSetInputMode(window,GLFW_CURSOR,GLFW_CURSOR_DISABLED);
 
 
     glfwSetKeyCallback(window,key_callback);
@@ -246,6 +228,10 @@ int main()
     glfwSetCursorPosCallback(window, mouse_callback);
     //Sets what function manages mouse movement.
     glfwSetScrollCallback(window,scroll_callback);
+
+    glfwSetInputMode(window,GLFW_CURSOR,GLFW_CURSOR_DISABLED);
+
+    Shader ourShader("shaders/vShader.vs","shaders/fShader.frag");
     /*
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -296,15 +282,15 @@ int main()
 
     glGenVertexArrays(1,&VAO);
     glGenBuffers(1,&VBO);
-    glGenBuffers(1,&EBO);
+    //glGenBuffers(1,&EBO);
 
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER,VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),vertices,GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),indices, GL_STATIC_DRAW);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),indices, GL_STATIC_DRAW);
 
     //Position
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,5*sizeof(GLfloat),(GLvoid*)0);
@@ -377,7 +363,7 @@ int main()
     glUniform4f(vertexColorLocation,redValue,greenValue,blueValue,1.0f);*/
 
 
-    trans = glm::rotate(trans,90.0f,glm::vec3(0.0f,0.0f,1.0f));
+    //trans = glm::rotate(trans,90.0f,glm::vec3(0.0f,0.0f,1.0f));
     //trans = glm::scale(trans,glm::vec3(0.5f,0.5f,0.5f));
 
 
@@ -416,12 +402,12 @@ int main()
 
         //trans = glm::translate(trans,glm::vec3(0.5f,-0.5f,0.0f));
         //Again, pushes the square too far off the screen.
-        glm::mat4 trans;
+        //glm::mat4 trans;
         //Not generating here makes the square spin extremely quickly
-        trans = glm::rotate(trans,(GLfloat)glfwGetTime()*50.0f,glm::vec3(0.0f,0.0f,1.0f));
+        //trans = glm::rotate(trans,(GLfloat)glfwGetTime()*50.0f,glm::vec3(0.0f,0.0f,1.0f));
 
-        GLuint transformLoc = glGetUniformLocation(ourShader.Program,"transform");
-        glUniformMatrix4fv(transformLoc,1,GL_FALSE,glm::value_ptr(trans));
+        //GLuint transformLoc = glGetUniformLocation(ourShader.Program,"transform");
+        //glUniformMatrix4fv(transformLoc,1,GL_FALSE,glm::value_ptr(trans));
 
         ourShader.Use();
 
@@ -446,9 +432,27 @@ int main()
         GLfloat camX = sin(glfwGetTime())*radius;
         GLfloat camZ = cos(glfwGetTime())*radius;*/
         glm::mat4 view;
-        view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
 
-
+        for (int c=0;c<10;c++)
+        {
+            //For applying to all objects in the cubePositions array
+            if (collision == false)
+            {
+                //If area is clear
+                view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
+                /*std::cout << cameraPos.x << ", " << cameraPos.y << ", " << cameraPos.z << std::endl;
+                std::cout << cameraFront.x << ", " << cameraFront.y << ", " << cameraFront.z << std::endl;
+                std::cout << cameraUp.x << ", " << cameraUp.y << ", " << cameraUp.z << std::endl;*/
+            }
+            else
+            {
+                //If colliding, stop, figure out where it collided at, then put you at the border.
+                //view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
+                std::cout << "Colliding." << std::endl;
+                //Maybe I should make a variable to hold previous values of
+                //cameraPos and cameraUp, so you can always move the camera.
+            }
+        }
         //Color
         //glm::mat4 model;
         glm::mat4 projection;
@@ -476,12 +480,17 @@ int main()
             //Draws the cubes
             glm::mat4 model;
             model = glm::translate(model,cubePositions[i]);
-            GLfloat angle = 20.0f*(i+1);
-            model = glm::rotate(model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f));
-            //model = model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f);
+            //GLfloat angle = 20.0f*(i+1);
+            //model = glm::rotate(model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f));
+            model = model,glm::vec3(1.0f,0.3f,0.5f);
             glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(model));
 
             glDrawArrays(GL_TRIANGLES,0,36);
+
+            if (model == view)
+            {
+                collision = true;
+            }
         }
 
         glBindVertexArray(0);
@@ -546,7 +555,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             blue -= .1f;
         }
     }
-    if (key > 0 && key < 1024)
+    if (key >= 0 && key < 1024)
     {
         if (action == GLFW_PRESS)
         {
@@ -599,7 +608,7 @@ void mouse_callback(GLFWwindow* window,double xpos,double ypos)
     lastY = ypos;
     //Finds the difference between frames
 
-    GLfloat sensitivity = .05f;
+    GLfloat sensitivity = 0.05f;
     //Sets the sensitivity of the mouse
 
     xoffset *= sensitivity;
