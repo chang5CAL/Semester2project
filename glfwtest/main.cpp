@@ -5,6 +5,10 @@
 //First off, I should just find the position of a cube.
 //The last column is what I should look at, it appears the others are just defining the cube's dimensions.
 //For future reference, a screenshot of the cube's matrices are in the folder.
+///Maybe I should make a cube-object and make it have the same coordinates as the camera? Then bind the camera
+///with the cube.
+//I know other games, especially 3rd Person games tend to have the camera not go through walls either, but this should work
+//for first person.
 
 //Note: All non-collision code was copied from learnopengl.com
 #include <iostream>
@@ -90,6 +94,9 @@ GLfloat vertices[] =
 
 glm::vec3 cubePositions[] =
 {
+    //I am convinced that deleting one
+    //makes a cube around the camera.
+    //Maybe that's the default position? To be at around the camera?
     glm::vec3( 0.0f,  0.0f,  0.0f),
     glm::vec3( 2.0f,  5.0f, -15.0f),
     glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -99,7 +106,7 @@ glm::vec3 cubePositions[] =
     glm::vec3( 1.3f, -2.0f, -2.5f),
     glm::vec3( 1.5f,  2.0f, -2.5f),
     glm::vec3( 1.5f,  0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f)
+    glm::vec3(-1.3f,  1.0f, -1.5f),
 };
 //Makes multiple positions for cubes
 
@@ -326,7 +333,7 @@ int main()
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 
-    image = SOIL_load_image("awesomeface.png",&width,&height,0,SOIL_LOAD_RGB);
+    image = SOIL_load_image("Cube Coordinates.png",&width,&height,0,SOIL_LOAD_RGB);
     glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,image);
 
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -433,25 +440,23 @@ int main()
         GLfloat camZ = cos(glfwGetTime())*radius;*/
         glm::mat4 view;
 
-        for (int c=0;c<10;c++)
+        //For applying to all objects in the cubePositions array
+        if (collision == false)
         {
-            //For applying to all objects in the cubePositions array
-            if (collision == false)
-            {
-                //If area is clear
-                view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
-                /*std::cout << cameraPos.x << ", " << cameraPos.y << ", " << cameraPos.z << std::endl;
-                std::cout << cameraFront.x << ", " << cameraFront.y << ", " << cameraFront.z << std::endl;
-                std::cout << cameraUp.x << ", " << cameraUp.y << ", " << cameraUp.z << std::endl;*/
-            }
-            else
-            {
-                //If colliding, stop, figure out where it collided at, then put you at the border.
-                //view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
-                std::cout << "Colliding." << std::endl;
-                //Maybe I should make a variable to hold previous values of
-                //cameraPos and cameraUp, so you can always move the camera.
-            }
+            //If area is clear
+            view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
+            /*std::cout << cameraPos.x << ", " << cameraPos.y << ", " << cameraPos.z << std::endl;
+            std::cout << cameraFront.x << ", " << cameraFront.y << ", " << cameraFront.z << std::endl;
+            std::cout << cameraUp.x << ", " << cameraUp.y << ", " << cameraUp.z << std::endl;*/
+        }
+        else
+        {
+            //If colliding, stop, figure out where it collided at, then put you at the border.
+            //view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
+            std::cout << "Colliding." << std::endl;
+            //Maybe I should make a variable to hold previous values of
+            //cameraPos and cameraUp, so you can always move the camera.
+            //It kind of needs to know where it should go, though.
         }
         //Color
         //glm::mat4 model;
@@ -468,19 +473,18 @@ int main()
         glUniformMatrix4fv(viewLoc,1,GL_FALSE,glm::value_ptr(view));
         glUniformMatrix4fv(projLoc,1,GL_FALSE,glm::value_ptr(projection));
 
-
         //glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,36*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
         //glEnableVertexAttribArray(1);
 
         //glBindTexture(GL_TEXTURE_2D, texture2);
         glBindVertexArray(VAO);
         //glDrawElements(GL_TRIANGLES,36,GL_UNSIGNED_INT,0);
-        for (GLuint i = 0;i<10;i++)
+        for (GLuint i=0;i<10;i++)
         {
             //Draws the cubes
             glm::mat4 model;
             model = glm::translate(model,cubePositions[i]);
-            //GLfloat angle = 20.0f*(i+1);
+            GLfloat angle = 20.0f*(i+1);
             //model = glm::rotate(model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f));
             model = model,glm::vec3(1.0f,0.3f,0.5f);
             glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(model));
@@ -489,9 +493,21 @@ int main()
 
             if (model == view)
             {
+                //There is like, no situataion where this will be true, currently.
                 collision = true;
             }
         }
+
+        /**
+        The 10th cube goes around the camera, probably because it has no values and defaults there.
+        **/
+
+        glm::mat4 modelp;
+
+        modelp = glm::translate(modelp,cubePositions[10]);
+        modelp = modelp,glm::vec3(0.0f,0.0f,0.0f);
+        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelp));
+        //glDrawArrays(GL_TRIANGLES,0,36);
 
         glBindVertexArray(0);
 
@@ -576,15 +592,15 @@ void move_camera()
     GLfloat camSpeed = 5.0f * deltaTime;
     if (keys[GLFW_KEY_W])
     {
-        cameraPos += camSpeed * cameraFront;
+        cameraPos += camSpeed*cameraFront;
     }
     if (keys[GLFW_KEY_S])
     {
-        cameraPos -= camSpeed * cameraFront;
+        cameraPos += -(camSpeed*cameraFront);
     }
     if (keys[GLFW_KEY_A])
     {
-        cameraPos -= glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed;
+        cameraPos += -(glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed);
     }
     if (keys[GLFW_KEY_D])
     {
