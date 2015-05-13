@@ -7,8 +7,13 @@
 //For future reference, a screenshot of the cube's matrices are in the folder.
 ///Maybe I should make a cube-object and make it have the same coordinates as the camera? Then bind the camera
 ///with the cube.
-//I know other games, especially 3rd Person games tend to have the camera not go through walls either, but this should work
-//for first person.
+//OpenGL probably has a seperate value for the position and the vertex, so the vertexes doesn't get distorted
+//when the object moves. Hence, what I need to do is find the location of the cubes, then add the vertexes, and make
+//collision true (And maybe include the cube around the player for good measure)
+
+//Matrix note:
+//*/ is for resizing
+//+- is for rotation and transformation
 
 //Note: All non-collision code was copied from learnopengl.com
 #include <iostream>
@@ -468,6 +473,7 @@ int main()
         GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
         GLint viewLoc = glGetUniformLocation(ourShader.Program, "view");
         GLint projLoc = glGetUniformLocation(ourShader.Program, "projection");
+        //Sends the position to the shader
 
         //glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(model));
         glUniformMatrix4fv(viewLoc,1,GL_FALSE,glm::value_ptr(view));
@@ -479,35 +485,48 @@ int main()
         //glBindTexture(GL_TEXTURE_2D, texture2);
         glBindVertexArray(VAO);
         //glDrawElements(GL_TRIANGLES,36,GL_UNSIGNED_INT,0);
+
+
+
+        /**
+        The 10th cube goes around the camera, probably because it has no values and defaults there.
+        cameraPos has the same effect, but because it makes it take the camera as a position.
+        **/
+
+        glm::mat4 modelp;
+
+        modelp = glm::translate(modelp,cameraPos);
+        modelp = modelp,glm::vec3(0.0f,0.0f,0.0f);
+        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelp));
+        glDrawArrays(GL_TRIANGLES,6,36);
+        //6 to 36 draws a block without the front.
+
         for (GLuint i=0;i<10;i++)
         {
             //Draws the cubes
             glm::mat4 model;
             model = glm::translate(model,cubePositions[i]);
+            //Sets the positions of the cubes
+
             GLfloat angle = 20.0f*(i+1);
-            //model = glm::rotate(model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f));
-            model = model,glm::vec3(1.0f,0.3f,0.5f);
+            //Sets the angle for rotation
+
+            model = glm::rotate(model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f));
+            //Draws the cubes to rotate
+            //model = model,glm::vec3(1.0f,0.3f,0.5f);
+
             glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(model));
+            //Binds the location of the cubes
+            //I think. It sets everything in camera position without this.
 
             glDrawArrays(GL_TRIANGLES,0,36);
+            //Actually draws the cubes
 
-            if (model == view)
+            if (glm::translate(modelp,cameraPos) == glm::translate(model,cubePositions[i]))
             {
-                //There is like, no situataion where this will be true, currently.
                 collision = true;
             }
         }
-
-        /**
-        The 10th cube goes around the camera, probably because it has no values and defaults there.
-        **/
-
-        glm::mat4 modelp;
-
-        modelp = glm::translate(modelp,cubePositions[10]);
-        modelp = modelp,glm::vec3(0.0f,0.0f,0.0f);
-        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelp));
-        //glDrawArrays(GL_TRIANGLES,0,36);
 
         glBindVertexArray(0);
 
