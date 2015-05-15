@@ -11,9 +11,21 @@
 //when the object moves. Hence, what I need to do is find the location of the cubes, then add the vertexes, and make
 //collision true (And maybe include the cube around the player for good measure)
 
+//SO: model[3](.x/.y/.z) is where the center coordinate is. Now I just need to adjust for the cubes surrounding
+//the point. How'll I do that?
+
 //Matrix note:
 //*/ is for resizing
 //+- is for rotation and transformation
+/** According to http://www.math.ucla.edu/~wittman/10c.1.11s/Lectures/Raids/Graphics3D.pdf,
+For Columns:
+X:        []X[]Y[]Z[]Point(1) or Vector(0)
+Y:        []X[]Y[]Z[]Point(1) or Vector(0)
+Z:        []X[]Y[]Z[]Point(1) or Vector(0)
+Position: []X[]Y[]Z[]Point(1) or Vector(0)
+Something like that?
+Looks like everything is rotating a bit.
+**/
 
 //Note: All non-collision code was copied from learnopengl.com
 #include <iostream>
@@ -33,6 +45,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/ext.hpp>
 
 #include "Shader.h"
 
@@ -170,6 +183,8 @@ int main()
     GLuint texture1,texture2;
     glm::vec4 vec(1.0f,0.0f,0.0f,1.0f);
     glm::mat4 trans;
+
+    glm::vec3 pCubePos = cameraPos;
 
     //glm::vec3 cameraPos = glm::vec3(0.0f,0.0f,3.0f);
     //glm::vec3 cameraTarget = glm::vec3(0.0f,0.0f,0.0f);
@@ -450,6 +465,7 @@ int main()
         {
             //If area is clear
             view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
+            pCubePos = cameraPos;
             /*std::cout << cameraPos.x << ", " << cameraPos.y << ", " << cameraPos.z << std::endl;
             std::cout << cameraFront.x << ", " << cameraFront.y << ", " << cameraFront.z << std::endl;
             std::cout << cameraUp.x << ", " << cameraUp.y << ", " << cameraUp.z << std::endl;*/
@@ -458,6 +474,7 @@ int main()
         {
             //If colliding, stop, figure out where it collided at, then put you at the border.
             //view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
+            view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
             std::cout << "Colliding." << std::endl;
             //Maybe I should make a variable to hold previous values of
             //cameraPos and cameraUp, so you can always move the camera.
@@ -495,7 +512,8 @@ int main()
 
         glm::mat4 modelp;
 
-        modelp = glm::translate(modelp,cameraPos);
+        modelp = glm::translate(modelp,pCubePos);
+        //This is it's own thing, so the camera will freemove forever, but the cube will not.
         modelp = modelp,glm::vec3(0.0f,0.0f,0.0f);
         glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelp));
         glDrawArrays(GL_TRIANGLES,6,36);
@@ -511,9 +529,14 @@ int main()
             GLfloat angle = 20.0f*(i+1);
             //Sets the angle for rotation
 
-            model = glm::rotate(model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f));
+            //model = glm::rotate(model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f));
             //Draws the cubes to rotate
             //model = model,glm::vec3(1.0f,0.3f,0.5f);
+            model[0] = glm::vec4(1,0,0,0);
+            model[1] = glm::vec4(0,1,0,0);
+            model[2] = glm::vec4(0,0,1,0);
+            model[3] = glm::vec4(0,0,1,0);
+            //Manually sets the matrices for SCIENCE!!!!!!!!
 
             glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(model));
             //Binds the location of the cubes
@@ -521,10 +544,20 @@ int main()
 
             glDrawArrays(GL_TRIANGLES,0,36);
             //Actually draws the cubes
+            std::cout << "Cube Matrix " << i << " : " << glm::to_string(model) << std::endl;
 
-            if (glm::translate(modelp,cameraPos) == glm::translate(model,cubePositions[i]))
+            if (modelp[0] == model[0])
             {
+                //Okay, so! This is checking if it's intersecting EVERYWHERE, not just one point.
+                //Try just one row/column?
                 collision = true;
+                std::cout << "Collision is with cube number " << i << std::endl;
+            }
+            else
+            {
+                //std::cout << "Player position: " << glm::to_string(modelp) << std::endl;
+                //Wait, is modelp the MOUSE position?
+                //std::cout << "Cube position: " << model << std::endl;
             }
         }
 
