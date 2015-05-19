@@ -66,18 +66,18 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 GLfloat timeValue = glfwGetTime();
 
 GLfloat vertices[] =
-{
+{    //Vertex Coordinate  //Textures
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-    0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
@@ -88,27 +88,74 @@ GLfloat vertices[] =
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
-    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
     -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-    0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
 
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
+
+GLfloat smallVertices[] =
+{    //Vertex Coordinate  //Textures
+    -0.15f, -0.15f, -0.15f,  0.0f, 0.0f,
+     0.15f, -0.15f, -0.15f,  1.0f, 0.0f,
+     0.15f,  0.15f, -0.15f,  1.0f, 1.0f,
+     0.15f,  0.15f, -0.15f,  1.0f, 1.0f,
+    -0.15f,  0.15f, -0.15f,  0.0f, 1.0f,
+    -0.15f, -0.15f, -0.15f,  0.0f, 0.0f,
+
+    -0.15f, -0.15f,  0.15f,  0.0f, 0.0f,
+     0.15f, -0.15f,  0.15f,  1.0f, 0.0f,
+     0.15f,  0.15f,  0.15f,  1.0f, 1.0f,
+     0.15f,  0.15f,  0.15f,  1.0f, 1.0f,
+    -0.15f,  0.15f,  0.15f,  0.0f, 1.0f,
+    -0.15f, -0.15f,  0.15f,  0.0f, 0.0f,
+
+    -0.15f,  0.15f,  0.15f,  1.0f, 0.0f,
+    -0.15f,  0.15f, -0.15f,  1.0f, 1.0f,
+    -0.15f, -0.15f, -0.15f,  0.0f, 1.0f,
+    -0.15f, -0.15f, -0.15f,  0.0f, 1.0f,
+    -0.15f, -0.15f,  0.15f,  0.0f, 0.0f,
+    -0.15f,  0.15f,  0.15f,  1.0f, 0.0f,
+
+     0.15f,  0.15f,  0.15f,  1.0f, 0.0f,
+     0.15f,  0.15f, -0.15f,  1.0f, 1.0f,
+     0.15f, -0.15f, -0.15f,  0.0f, 1.0f,
+     0.15f, -0.15f, -0.15f,  0.0f, 1.0f,
+     0.15f, -0.15f,  0.15f,  0.0f, 0.0f,
+     0.15f,  0.15f,  0.15f,  1.0f, 0.0f,
+
+    -0.15f, -0.15f, -0.15f,  0.0f, 1.0f,
+     0.15f, -0.15f, -0.15f,  1.0f, 1.0f,
+     0.15f, -0.15f,  0.15f,  1.0f, 0.0f,
+     0.15f, -0.15f,  0.15f,  1.0f, 0.0f,
+    -0.15f, -0.15f,  0.15f,  0.0f, 0.0f,
+    -0.15f, -0.15f, -0.15f,  0.0f, 1.0f,
+
+    -0.15f,  0.15f, -0.15f,  0.0f, 1.0f,
+     0.15f,  0.15f, -0.15f,  1.0f, 1.0f,
+     0.15f,  0.15f,  0.15f,  1.0f, 0.0f,
+     0.15f,  0.15f,  0.15f,  1.0f, 0.0f,
+    -0.15f,  0.15f,  0.15f,  0.0f, 0.0f,
+    -0.15f,  0.15f, -0.15f,  0.0f, 1.0f
+};
+//For the player cube's coordinates.
+
 
 glm::vec3 cubePositions[] =
 {
@@ -170,6 +217,14 @@ GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 //Establishes time
 bool collision;
+
+//For now unused, to be used for directional collision
+bool forwardCollision;
+bool backwardCollision;
+bool leftCollision;
+bool rightCollision;
+bool topCollision;
+bool bottomCollision;
 
 int main()
 {
@@ -476,6 +531,7 @@ int main()
             //view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
             view = glm::lookAt(cameraPos,cameraPos+cameraFront,cameraUp);
             std::cout << "Colliding." << std::endl;
+
             //Maybe I should make a variable to hold previous values of
             //cameraPos and cameraUp, so you can always move the camera.
             //It kind of needs to know where it should go, though.
@@ -510,14 +566,23 @@ int main()
         cameraPos has the same effect, but because it makes it take the camera as a position.
         **/
 
+        glBufferData(GL_ARRAY_BUFFER, sizeof(smallVertices),smallVertices,GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER,VBO);
+        //Causes the player's box to be smaller
+
         glm::mat4 modelp;
 
         modelp = glm::translate(modelp,pCubePos);
         //This is it's own thing, so the camera will freemove forever, but the cube will not.
         modelp = modelp,glm::vec3(0.0f,0.0f,0.0f);
         glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelp));
-        glDrawArrays(GL_TRIANGLES,6,36);
+        //glDrawArrays(GL_TRIANGLES,6,36);
         //6 to 36 draws a block without the front.
+        //I wanna make this one a bit smaller so I can have more collisions.
+
+
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),vertices,GL_STATIC_DRAW);
+        glBindVertexArray(VAO);
 
         for (GLuint i=0;i<10;i++)
         {
@@ -535,7 +600,7 @@ int main()
             model[0] = glm::vec4(1,0,0,0);
             model[1] = glm::vec4(0,1,0,0);
             model[2] = glm::vec4(0,0,1,0);
-            model[3] = glm::vec4(0,0,1,0);
+            //model[3] = glm::vec4(0,0,0,1);
             //Manually sets the matrices for SCIENCE!!!!!!!!
 
             glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(model));
@@ -544,21 +609,124 @@ int main()
 
             glDrawArrays(GL_TRIANGLES,0,36);
             //Actually draws the cubes
-            std::cout << "Cube Matrix " << i << " : " << glm::to_string(model) << std::endl;
+            //std::cout << "Cube Matrix " << i << " : " << glm::to_string(model) << std::endl;
 
-            if (modelp[0] == model[0])
+
+            //Okay, good news, bad news: Got collision working, but it warps you because multiple
+            //collisions act at once.
+            if ((modelp[3].z-.15 < model[3].z+.5 and modelp[3].z-.15 > model[3].z-.5)and
+
+                ((modelp[3].x-.15 >= model[3].x-.5 and modelp[3].x-.15 <= model[3].x+.5)
+                or (modelp[3].x+.15 >= model[3].x-.5 and modelp[3].x+.15 <= model[3].x+.5)) and
+
+                ((modelp[3].y-.15 >= model[3].y-.5 and modelp[3].y-.15 <= model[3].y+.5)
+                or (modelp[3].y+.15 >= model[3].y-.5 and modelp[3].y+.15 <= model[3].y+.5)))
             {
+                //Needa make it only apply to blocks.
+                //Then make sure it doesn't let you keep going there.
+                //std::cout << glm::to_string(modelp) << std::endl << std::endl;
                 //Okay, so! This is checking if it's intersecting EVERYWHERE, not just one point.
                 //Try just one row/column?
-                collision = true;
-                std::cout << "Collision is with cube number " << i << std::endl;
+
+                //collision = true;
+
+                forwardCollision = true;
+
+                std::cout << "Forwards Collision is with cube number " << i << std::endl;
+
+                cameraPos.z = model[3].z+.65;
             }
-            else
+                if ((modelp[3].z+.15 < model[3].z+.5 and modelp[3].z+.15 > model[3].z-.5)and
+
+                ((modelp[3].x-.15 >= model[3].x-.5 and modelp[3].x-.15 <= model[3].x+.5)
+                or (modelp[3].x+.15 >= model[3].x-.5 and modelp[3].x+.15 <= model[3].x+.5)) and
+
+                ((modelp[3].y-.15 >= model[3].y-.5 and modelp[3].y-.15 <= model[3].y+.5)
+                or (modelp[3].y+.15 >= model[3].y-.5 and modelp[3].y+.15 <= model[3].y+.5)))
+            {
+                //Backwards collision
+                //collision = true;
+
+                backwardCollision = true;
+
+                std::cout << "Backwards Collision is with cube number " << i << std::endl;
+
+                cameraPos.z = model[3].z-.65;
+            }
+            if (((modelp[3].z+.15 <= model[3].z+.5 and modelp[3].z+.15 >= model[3].z-.5)
+                or (modelp[3].z-.15 <= model[3].z+.5 and model[3].z-.15 >= model[3].z+.5)) and
+
+                ((modelp[3].x-.15 > model[3].x-.5 and modelp[3].x-.15 < model[3].x+.5)) and
+
+                ((modelp[3].y-.15 >= model[3].y-.5 and modelp[3].y-.15 <= model[3].y+.5)
+                or (modelp[3].y+.15 >= model[3].y-.5 and modelp[3].y+.15 <= model[3].y+.5)))
+            {
+                //Left Collision
+                //collision = true;
+
+                leftCollision = true;
+
+                std::cout << "Left Collision is with cube number " << i << std::endl;
+
+                cameraPos.x = model[3].x+.65;
+            }
+            if (((modelp[3].z+.15 <= model[3].z+.5 and modelp[3].z+.15 >= model[3].z-.5)
+                or (modelp[3].z-.15 <= model[3].z+.5 and model[3].z-.15 >= model[3].z+.5)) and
+
+                ((modelp[3].x+.15 > model[3].x-.5 and modelp[3].x+.15 < model[3].x+.5)) and
+
+                ((modelp[3].y-.15 >= model[3].y-.5 and modelp[3].y-.15 <= model[3].y+.5)
+                or (modelp[3].y+.15 >= model[3].y-.5 and modelp[3].y+.15 <= model[3].y+.5)))
+            {
+                //Right Collision
+                //collision = true;
+
+                rightCollision = true;
+
+                std::cout << "Right Collision is with cube number " << i << std::endl;
+
+                cameraPos.x = model[3].x-.65;
+            }
+            if (((modelp[3].z+.15 <= model[3].z+.5 and modelp[3].z+.15 >= model[3].z-.5)
+                or (modelp[3].z-.15 <= model[3].z+.5 and model[3].z-.15 >= model[3].z+.5)) and
+
+                ((modelp[3].x-.15 >= model[3].x-.5 and modelp[3].x-.15 <= model[3].x+.5)
+                or (modelp[3].x+.15 >= model[3].x-.5 and modelp[3].x+.15 <= model[3].x+.5)) and
+
+                (modelp[3].y+.15 > model[3].y-.5 and modelp[3].y+.15 < model[3].y+.5))
+            {
+                //Top Collision
+                //collision = true;
+
+                topCollision = true;
+
+                std::cout << "Top Collision is with cube number " << i << std::endl;
+
+                cameraPos.y = model[3].y-.65;
+            }
+            if (((modelp[3].z+.15 <= model[3].z+.5 and modelp[3].z+.15 >= model[3].z-.5)
+                or (modelp[3].z-.15 <= model[3].z+.5 and model[3].z-.15 >= model[3].z+.5)) and
+
+                ((modelp[3].x-.15 >= model[3].x-.5 and modelp[3].x-.15 <= model[3].x+.5)
+                or (modelp[3].x+.15 >= model[3].x-.5 and modelp[3].x+.15 <= model[3].x+.5)) and
+
+                (modelp[3].y-.15 > model[3].y-.5 and modelp[3].y-.15 < model[3].y+.5))
+            {
+                //Top Collision
+                //collision = true;
+
+                bottomCollision = true;
+
+                std::cout << "Bottom Collision is with cube number " << i << std::endl;
+
+                cameraPos.y = model[3].y+.65;
+            }
+            /*else
             {
                 //std::cout << "Player position: " << glm::to_string(modelp) << std::endl;
                 //Wait, is modelp the MOUSE position?
                 //std::cout << "Cube position: " << model << std::endl;
-            }
+            }*/
         }
 
         glBindVertexArray(0);
@@ -642,21 +810,24 @@ void move_camera()
 {
     //Moves the camera
     GLfloat camSpeed = 5.0f * deltaTime;
-    if (keys[GLFW_KEY_W])
+    if (collision == false)
     {
-        cameraPos += camSpeed*cameraFront;
-    }
-    if (keys[GLFW_KEY_S])
-    {
-        cameraPos += -(camSpeed*cameraFront);
-    }
-    if (keys[GLFW_KEY_A])
-    {
-        cameraPos += -(glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed);
-    }
-    if (keys[GLFW_KEY_D])
-    {
-        cameraPos += glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed;
+        if (keys[GLFW_KEY_W])
+        {
+            cameraPos += camSpeed*cameraFront;
+        }
+        if (keys[GLFW_KEY_S])
+        {
+            cameraPos += -(camSpeed*cameraFront);
+        }
+        if (keys[GLFW_KEY_A])
+        {
+            cameraPos += -(glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed);
+        }
+        if (keys[GLFW_KEY_D])
+        {
+            cameraPos += glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed;
+        }
     }
 }
 
@@ -701,7 +872,6 @@ void mouse_callback(GLFWwindow* window,double xpos,double ypos)
     front.y = sin(glm::radians(pitch));
     front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     cameraFront = glm::normalize(front);
-
 }
 
 void scroll_callback(GLFWwindow* window,double xoffset,double yoffset)
