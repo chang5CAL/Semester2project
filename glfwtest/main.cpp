@@ -1,4 +1,6 @@
 //Collision notes:
+//It's done. Collision has been been successfully implemented.
+//
 //I need to find the position of the cubes
 //Then I need to camera position (should be cameraPos)
 //Then I need to check if they collide, and if so, prevent movement.
@@ -576,7 +578,7 @@ int main()
         //This is it's own thing, so the camera will freemove forever, but the cube will not.
         modelp = modelp,glm::vec3(0.0f,0.0f,0.0f);
         glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelp));
-        //glDrawArrays(GL_TRIANGLES,6,36);
+        glDrawArrays(GL_TRIANGLES,6,36);
         //6 to 36 draws a block without the front.
         //I wanna make this one a bit smaller so I can have more collisions.
 
@@ -597,9 +599,9 @@ int main()
             //model = glm::rotate(model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f));
             //Draws the cubes to rotate
             //model = model,glm::vec3(1.0f,0.3f,0.5f);
-            model[0] = glm::vec4(1,0,0,0);
-            model[1] = glm::vec4(0,1,0,0);
-            model[2] = glm::vec4(0,0,1,0);
+            //model[0] = glm::vec4(1,0,0,0);
+            //model[1] = glm::vec4(0,1,0,0);
+            //model[2] = glm::vec4(0,0,1,0);
             //model[3] = glm::vec4(0,0,0,1);
             //Manually sets the matrices for SCIENCE!!!!!!!!
 
@@ -614,7 +616,66 @@ int main()
 
             //Okay, good news, bad news: Got collision working, but it warps you because multiple
             //collisions act at once.
-            if ((modelp[3].z-.15 < model[3].z+.5 and modelp[3].z-.15 > model[3].z-.5)and
+            if (((modelp[3].z+.15 < model[3].z+.5 and modelp[3].z+.15 > model[3].z-.5)
+                or (modelp[3].z-.15 < model[3].z+.5 and model[3].z-.15 > model[3].z+.5)) and
+
+                ((modelp[3].x-.15 > model[3].x-.5 and modelp[3].x-.15 < model[3].x+.5)
+                or (modelp[3].x+.15 > model[3].x-.5 and modelp[3].x+.15 < model[3].x+.5)) and
+
+                ((modelp[3].y-.15 > model[3].y-.5 and modelp[3].y-.15 < model[3].y+.5)
+                or (modelp[3].y+.15 > model[3].y-.5 and modelp[3].y+.15 < model[3].y+.5)))
+                {
+                    //This basically just checks if the cube is inside of the block or not
+                    std::cout << "Collision is with cube number " << i << std::endl;
+                    //What I want to do is make it so that once you collide from an area, it puts you at the
+                    //nearest point.
+                    if (std::abs(modelp[3].z - model[3].z) > std::abs(modelp[3].x - model[3].x) and
+                        std::abs(modelp[3].z - model[3].z) > std::abs(modelp[3].y - model[3].y))
+                        {
+                            std::cout << "Most displacement: Z" << std::endl;
+
+                            if (modelp[3].z > model[3].z)
+                            {
+                                cameraPos.z = model[3].z+.65;
+                            }
+                            else
+                            {
+                                cameraPos.z = model[3].z-.65;
+
+                            }
+                        }
+                    if (std::abs(modelp[3].x - model[3].x) > std::abs(modelp[3].z - model[3].z) and
+                        std::abs(modelp[3].x - model[3].x) > std::abs(modelp[3].y - model[3].y))
+                        {
+                            std::cout << "Most displacement: X" << std::endl;
+                            if (modelp[3].x > model[3].x)
+                            {
+                                cameraPos.x = model[3].x+.65;
+                            }
+                            else
+                            {
+                                cameraPos.x = model[3].x-.65;
+
+                            }
+
+                        }
+                    if (std::abs(modelp[3].y - model[3].y) > std::abs(modelp[3].z - model[3].z) and
+                        std::abs(modelp[3].y - model[3].y) > std::abs(modelp[3].x - model[3].x))
+                        {
+                            std::cout << "Most displacement: Y" << std::endl;
+                            if (modelp[3].y > model[3].y)
+                            {
+                                cameraPos.y = model[3].y+.65;
+                            }
+                            else
+                            {
+                                cameraPos.y = model[3].y-.65;
+
+                            }
+                        }
+                }
+
+            /*if ((modelp[3].z-.15 < model[3].z+.5 and modelp[3].z-.15 > model[3].z-.5)and
 
                 ((modelp[3].x-.15 >= model[3].x-.5 and modelp[3].x-.15 <= model[3].x+.5)
                 or (modelp[3].x+.15 >= model[3].x-.5 and modelp[3].x+.15 <= model[3].x+.5)) and
@@ -636,6 +697,7 @@ int main()
 
                 cameraPos.z = model[3].z+.65;
             }
+            /*
                 if ((modelp[3].z+.15 < model[3].z+.5 and modelp[3].z+.15 > model[3].z-.5)and
 
                 ((modelp[3].x-.15 >= model[3].x-.5 and modelp[3].x-.15 <= model[3].x+.5)
@@ -720,7 +782,7 @@ int main()
                 std::cout << "Bottom Collision is with cube number " << i << std::endl;
 
                 cameraPos.y = model[3].y+.65;
-            }
+            }*/
             /*else
             {
                 //std::cout << "Player position: " << glm::to_string(modelp) << std::endl;
