@@ -158,6 +158,57 @@ GLfloat smallVertices[] =
 };
 //For the player cube's coordinates.
 
+GLfloat floorVertices[] =
+{    //Vertex Coordinate  //Textures
+     //Front
+    -0.05f, -0.05f, -0.05f,  0.0f, 0.0f,
+     0.05f, -0.05f, -0.05f,  1.0f, 0.0f,
+     0.05f,  0.05f, -0.05f,  1.0f, 1.0f,
+     0.05f,  0.05f, -0.05f,  1.0f, 1.0f,
+    -0.05f,  0.05f, -0.05f,  0.0f, 1.0f,
+    -0.05f, -0.05f, -0.05f,  0.0f, 0.0f,
+
+     //Back
+    -0.05f, -0.05f,  0.05f,  0.0f, 0.0f,
+     0.05f, -0.05f,  0.05f,  1.0f, 0.0f,
+     0.05f,  0.05f,  0.05f,  1.0f, 1.0f,
+     0.05f,  0.05f,  0.05f,  1.0f, 1.0f,
+    -0.05f,  0.05f,  0.05f,  0.0f, 1.0f,
+    -0.05f, -0.05f,  0.05f,  0.0f, 0.0f,
+
+     //Left
+    -0.05f,  0.05f,  0.05f,  1.0f, 0.0f,
+    -0.05f,  0.05f, -0.05f,  1.0f, 1.0f,
+    -0.05f, -0.05f, -0.05f,  0.0f, 1.0f,
+    -0.05f, -0.05f, -0.05f,  0.0f, 1.0f,
+    -0.05f, -0.05f,  0.05f,  0.0f, 0.0f,
+    -0.05f,  0.05f,  0.05f,  1.0f, 0.0f,
+
+     //Right
+     0.05f,  0.05f,  0.05f,  1.0f, 0.0f,
+     0.05f,  0.05f, -0.05f,  1.0f, 1.0f,
+     0.05f, -0.05f, -0.05f,  0.0f, 1.0f,
+     0.05f, -0.05f, -0.05f,  0.0f, 1.0f,
+     0.05f, -0.05f,  0.05f,  0.0f, 0.0f,
+     0.05f,  0.05f,  0.05f,  1.0f, 0.0f,
+
+     //Bottom
+    -20.0f, -20.0f, -20.0f,  0.0f, 1.0f,
+     20.0f, -20.0f, -20.0f,  1.0f, 1.0f,
+     20.0f, -20.0f,  20.0f,  1.0f, 0.0f,
+     20.0f, -20.0f,  20.0f,  1.0f, 0.0f,
+    -20.0f, -20.0f,  20.0f,  0.0f, 0.0f,
+    -20.0f, -20.0f, -20.0f,  0.0f, 1.0f,
+
+     //Top
+    -20.0f,  20.0f, -20.0f,  0.0f, 1.0f,
+     20.0f,  20.0f, -20.0f,  1.0f, 1.0f,
+     20.0f,  20.0f,  20.0f,  1.0f, 0.0f,
+     20.0f,  20.0f,  20.0f,  1.0f, 0.0f,
+    -20.0f,  20.0f,  20.0f,  0.0f, 0.0f,
+    -20.0f,  20.0f, -20.0f,  0.0f, 1.0f
+};
+//For a floor
 
 glm::vec3 cubePositions[] =
 {
@@ -593,7 +644,7 @@ int main()
             model = glm::translate(model,cubePositions[i]);
             //Sets the positions of the cubes
 
-            GLfloat angle = 20.0f*(i+1);
+            //GLfloat angle = 20.0f*(i+1);
             //Sets the angle for rotation
 
             //model = glm::rotate(model,(GLfloat)glfwGetTime() * angle,glm::vec3(1.0f,0.3f,0.5f));
@@ -617,7 +668,7 @@ int main()
             //Okay, good news, bad news: Got collision working, but it warps you because multiple
             //collisions act at once.
             if (((modelp[3].z+.15 < model[3].z+.5 and modelp[3].z+.15 > model[3].z-.5)
-                or (modelp[3].z-.15 < model[3].z+.5 and model[3].z-.15 > model[3].z+.5)) and
+                or (modelp[3].z-.15 < model[3].z+.5 and model[3].z-.15 > model[3].z-.5)) and
 
                 ((modelp[3].x-.15 > model[3].x-.5 and modelp[3].x-.15 < model[3].x+.5)
                 or (modelp[3].x+.15 > model[3].x-.5 and modelp[3].x+.15 < model[3].x+.5)) and
@@ -790,6 +841,23 @@ int main()
                 //std::cout << "Cube position: " << model << std::endl;
             }*/
         }
+
+
+        /* Floor (Under Construction)s
+        glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices),floorVertices,GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER,VBO);
+        //Causes the player's box to be smaller
+
+        glm::mat4 modelf;
+
+        modelf = glm::translate(modelp,glm::vec3(0.0f,0.0f,0.0f));
+        //This is it's own thing, so the camera will freemove forever, but the cube will not.
+        modelf = modelf,glm::vec3(0.0f,0.0f,0.0f);
+        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelf));
+        glDrawArrays(GL_TRIANGLES,0,36);
+        */
+
+
 
         glBindVertexArray(0);
 
