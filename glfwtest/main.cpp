@@ -50,6 +50,13 @@ Looks like everything is rotating a bit.
 #include <glm/ext.hpp>
 
 #include "Shader.h"
+#include "Mesh.h"
+
+#include <gl\gl.h>
+#include <gl\glu.h>
+
+#include <cal3d\cal3d.h>
+
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 //Gets key inputs
@@ -58,6 +65,196 @@ void move_camera();
 void mouse_callback(GLFWwindow* window,double xpos,double ypos);
 //Gets mouse movements
 void scroll_callback(GLFWwindow* window,double xoffset,double yoffset);
+//Sets mouse wheel actions
+void mouseClick_callback(GLFWwindow* window, int button, int action, int mods);
+
+void addStationaryCollision(glm::mat4 stationaryObject,glm::vec3 topRight,glm::vec3 bottomLeft);
+//Adds objects
+
+void stationaryCollision(glm::mat4 playerPosition,glm::vec3 playerTopRight,glm::vec3 playerBottomLeft,glm::vec3 movement);
+
+//GLuint loadGLTexture(const char *filename);
+
+//I'll probably need to make a moving-to-moving object, but that's a bit convoluted for now.
+//I'm reworking collision. I think I'll create a global that holds the areas (A mat4, I'd guess), a function that adds to it, and a function
+//That checks for it.
+
+glm::vec3 stationaryUpperRight[99999];
+//The upper right portion of any given stationary object
+glm::vec3 stationaryBottomLeft[99999];
+//The bottom left portion of any given stationary object
+int stationarySize = 0;
+
+glm::vec3 playerPos = glm::vec3(0.0f,0.0f,3.0f);
+glm::vec3 cameraPos = playerPos;
+glm::vec3 cameraUp = glm::vec3(0.0f,1.0f,0.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f,0.0f,-1.0f);
+
+bool dashForward = false;
+bool dashBackward = false;
+bool dashLeft = false;
+bool dashRight = false;
+bool lightAttack = false;
+bool rollAttack = false;
+bool heavyAttack = false;
+bool currentAction = false;
+bool canBuffer = false;
+bool dashBuffer = false;
+bool attackBuffer = false;
+bool bufferEnabled = false;
+int actionBuffer = 0;
+
+glm::mat4 swordModel;
+
+double dashElapsedTime = 0.0f;
+double attackElapsedTime = 0.0f;
+
+void addStationaryCollision(glm::mat4 stationaryObject,glm::vec3 topRight,glm::vec3 bottomLeft)
+{
+    //Adds the size of the object (Assumes it is rectangular) to the arrays holding the corners.
+    //I think I'm rotating something wrong. Specifically, it rotates and has a -0.00 thing, so
+    //it rotates to an extremely short degree
+
+
+    stationaryUpperRight[stationarySize][0] = stationaryObject[3].x + topRight[0];
+    stationaryUpperRight[stationarySize][1] = stationaryObject[3].y + topRight[1];
+    stationaryUpperRight[stationarySize][2] = stationaryObject[3].z + topRight[2];
+
+    stationaryBottomLeft[stationarySize][0] = stationaryObject[3].x + bottomLeft[0];
+    stationaryBottomLeft[stationarySize][1] = stationaryObject[3].y + bottomLeft[1];
+    stationaryBottomLeft[stationarySize][2] = stationaryObject[3].z + bottomLeft[2];
+
+    std::cout << "Stationary Object's Matrix: " << glm::to_string(stationaryObject) << std::endl << "Upper Right: " << stationaryUpperRight[stationarySize][0] << std::endl
+    << stationaryUpperRight[stationarySize][1] << std::endl << stationaryUpperRight[stationarySize][2] << std::endl << "Lower Left: " << stationaryBottomLeft[stationarySize][0] << std::endl
+    << stationaryBottomLeft[stationarySize][1] << std::endl << stationaryBottomLeft[stationarySize][2] << std::endl;
+
+    stationarySize++;
+    //Note to self: After importing this, make the collision, then go learn about models.
+    //Also something, something, cryptography.
+}
+
+void stationaryCollision(glm::vec3 playerPosition,glm::vec3 playerTopRight,glm::vec3 playerBottomLeft,glm::vec3 movement)
+{
+    //Note to self: Add the movement/direction
+    bool collidingX = false;
+    bool collidingZ = false;
+    int adjacentXPos;
+    int adjacentZPos;
+
+    //bool topRightbotLeft;
+    //True for top right, false for bot left.
+
+    for (int c=0;c<stationarySize;c++)
+    {
+        //Okay, so a few things:
+        //One, I need it to NOT collide with the floor. This'll be a temporary fix, I guess.
+
+        if ((playerPosition[1]/*+playerBottomLeft[1]*/ > stationaryBottomLeft[c][1] and playerPosition[1]/*+playerBottomLeft[1]*/ < stationaryUpperRight[c][1]))
+            //or (playerPosition[1]+playerTopRight[1] > stationaryBottomLeft[c][1] and playerPosition[1]+playerTopRight[1] < stationaryUpperRight[c][1]))
+        {
+            //std::cout << "The Y collision is with " << c << std::endl;
+
+            if (((playerPosition[0]+playerBottomLeft[0]+movement[0] > stationaryBottomLeft[c][0] and playerPosition[0]+playerBottomLeft[0]+movement[0] < stationaryUpperRight[c][0]) or
+                 (playerPosition[0]+playerTopRight[0]+movement[0] > stationaryBottomLeft[c][0] and playerPosition[0]+playerTopRight[0]+movement[0] < stationaryUpperRight[c][0])) and
+                (playerPosition[2]+playerBottomLeft[2] >= stationaryBottomLeft[c][2] and playerPosition[2]+playerBottomLeft[2] <= stationaryUpperRight[c][2]))
+            {
+                std::cout << "The X collision is with " << c << std::endl;
+                collidingX = true;
+                adjacentXPos = c;
+            }
+
+            if (((playerPosition[2]+playerBottomLeft[2]+movement[2] > stationaryBottomLeft[c][2] and playerPosition[2]+playerBottomLeft[2]+movement[2] < stationaryUpperRight[c][2]) or
+                 (playerPosition[2]+playerTopRight[2]+movement[2] > stationaryBottomLeft[c][2] and playerPosition[2]+playerTopRight[2]+movement[2] < stationaryUpperRight[c][2])) and
+                (playerPosition[2]+playerBottomLeft[2] >= stationaryBottomLeft[c][0] and playerPosition[2]+playerBottomLeft[2] <= stationaryUpperRight[c][0]))
+            {
+                std::cout << "The Z collision is with " << c << std::endl;
+                collidingZ = true;
+                adjacentZPos = c;
+            }
+        }
+    }
+
+    if (!collidingX and !collidingZ)
+    {
+        //std::cout << "No Collision" << std::endl;
+        playerPos[0] += movement[0];
+        playerPos[2] += movement[2];
+
+    }
+    else if (!collidingX)
+    {
+        std::cout << "X Collision" << std::endl;
+        playerPos[2] += movement[2];
+
+        if (movement[0] > 0)
+        {
+            playerPos[0] = stationaryBottomLeft[adjacentXPos][0] - playerTopRight[0];
+        }
+        else if (movement[0] < 0)
+        {
+            playerPos[0] = stationaryUpperRight[adjacentXPos][0] - playerBottomLeft[0];
+        }
+        collidingZ = false;
+
+    }
+    else if (!collidingZ)
+    {
+        std::cout << "Z Collision" << std::endl;
+        playerPos[0] += movement[0];
+
+        if (movement[2] > 0)
+        {
+            playerPos[2] = stationaryBottomLeft[adjacentZPos][2] - playerTopRight[2];
+        }
+        else if (movement[2] < 0)
+        {
+            playerPos[2] = stationaryUpperRight[adjacentZPos][2] - playerBottomLeft[2];
+        }
+
+        collidingX = false;
+    }
+    else
+    {
+        std::cout << "Double Collision" << std::endl;
+        if (movement[0] > 0)
+        {
+            playerPos[0] = stationaryBottomLeft[adjacentXPos][0] - playerTopRight[0];
+        }
+        else if (movement[0] < 0)
+        {
+            playerPos[0] = stationaryUpperRight[adjacentXPos][0] - playerBottomLeft[0];
+        }
+
+        if (movement[2] > 0)
+        {
+            playerPos[2] = stationaryBottomLeft[adjacentZPos][2] - playerTopRight[2];
+        }
+        else if (movement[2] < 0)
+        {
+            playerPos[2] = stationaryUpperRight[adjacentZPos][2] - playerBottomLeft[2];
+        }
+
+        collidingX = false;
+        collidingZ = false;
+    }
+}
+
+/*
+GLuint loadGLTexture(const char *filename)
+{
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glUniform1i(glGetUniformLocation(ourShader.Program,filename),0);
+}
+
+GLuint loadGLTexture(const char *filename,int textureNum)
+{
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glUniform1i(glGetUniformLocation(ourShader.Program,filename),textureNum);
+
+}
+*/
 
 float red = 1.0f;
 float green = 1.0f;
@@ -114,12 +311,6 @@ GLfloat vertices[] =
 
 GLfloat smallVertices[] =
 {    //Vertex Coordinate  //Textures
-    -0.15f, -0.15f, -0.15f,  0.0f, 0.0f,
-     0.15f, -0.15f, -0.15f,  1.0f, 0.0f,
-     0.15f,  0.15f, -0.15f,  1.0f, 1.0f,
-     0.15f,  0.15f, -0.15f,  1.0f, 1.0f,
-    -0.15f,  0.15f, -0.15f,  0.0f, 1.0f,
-    -0.15f, -0.15f, -0.15f,  0.0f, 0.0f,
 
     -0.15f, -0.15f,  0.15f,  0.0f, 0.0f,
      0.15f, -0.15f,  0.15f,  1.0f, 0.0f,
@@ -158,39 +349,39 @@ GLfloat smallVertices[] =
 };
 //For the player cube's coordinates.
 
-GLfloat floorVertices[] =
+GLfloat roomVertices[] =
 {    //Vertex Coordinate  //Textures
      //Front
-    -0.05f, -0.05f, -0.05f,  0.0f, 0.0f,
-     0.05f, -0.05f, -0.05f,  1.0f, 0.0f,
-     0.05f,  0.05f, -0.05f,  1.0f, 1.0f,
-     0.05f,  0.05f, -0.05f,  1.0f, 1.0f,
-    -0.05f,  0.05f, -0.05f,  0.0f, 1.0f,
-    -0.05f, -0.05f, -0.05f,  0.0f, 0.0f,
+    -20.0f, -20.0f, -20.0f,  0.0f, 0.0f,
+     20.0f, -20.0f, -20.0f,  1.0f, 0.0f,
+     20.0f,  20.0f, -20.0f,  1.0f, 1.0f,
+     20.0f,  20.0f, -20.0f,  1.0f, 1.0f,
+    -20.0f,  20.0f, -20.0f,  0.0f, 1.0f,
+    -20.0f, -20.0f, -20.0f,  0.0f, 0.0f,
 
      //Back
-    -0.05f, -0.05f,  0.05f,  0.0f, 0.0f,
-     0.05f, -0.05f,  0.05f,  1.0f, 0.0f,
-     0.05f,  0.05f,  0.05f,  1.0f, 1.0f,
-     0.05f,  0.05f,  0.05f,  1.0f, 1.0f,
-    -0.05f,  0.05f,  0.05f,  0.0f, 1.0f,
-    -0.05f, -0.05f,  0.05f,  0.0f, 0.0f,
+    -20.0f, -20.0f,  20.0f,  0.0f, 0.0f,
+     20.0f, -20.0f,  20.0f,  1.0f, 0.0f,
+     20.0f,  20.0f,  20.0f,  1.0f, 1.0f,
+     20.0f,  20.0f,  20.0f,  1.0f, 1.0f,
+    -20.0f,  20.0f,  20.0f,  0.0f, 1.0f,
+    -20.0f, -20.0f,  20.0f,  0.0f, 0.0f,
 
      //Left
-    -0.05f,  0.05f,  0.05f,  1.0f, 0.0f,
-    -0.05f,  0.05f, -0.05f,  1.0f, 1.0f,
-    -0.05f, -0.05f, -0.05f,  0.0f, 1.0f,
-    -0.05f, -0.05f, -0.05f,  0.0f, 1.0f,
-    -0.05f, -0.05f,  0.05f,  0.0f, 0.0f,
-    -0.05f,  0.05f,  0.05f,  1.0f, 0.0f,
+    -20.0f,  20.0f,  20.0f,  1.0f, 0.0f,
+    -20.0f,  20.0f, -20.0f,  1.0f, 1.0f,
+    -20.0f, -20.0f, -20.0f,  0.0f, 1.0f,
+    -20.0f, -20.0f, -20.0f,  0.0f, 1.0f,
+    -20.0f, -20.0f,  20.0f,  0.0f, 0.0f,
+    -20.0f,  20.0f,  20.0f,  1.0f, 0.0f,
 
      //Right
-     0.05f,  0.05f,  0.05f,  1.0f, 0.0f,
-     0.05f,  0.05f, -0.05f,  1.0f, 1.0f,
-     0.05f, -0.05f, -0.05f,  0.0f, 1.0f,
-     0.05f, -0.05f, -0.05f,  0.0f, 1.0f,
-     0.05f, -0.05f,  0.05f,  0.0f, 0.0f,
-     0.05f,  0.05f,  0.05f,  1.0f, 0.0f,
+     20.0f,  20.0f,  20.0f,  1.0f, 0.0f,
+     20.0f,  20.0f, -20.0f,  1.0f, 1.0f,
+     20.0f, -20.0f, -20.0f,  0.0f, 1.0f,
+     20.0f, -20.0f, -20.0f,  0.0f, 1.0f,
+     20.0f, -20.0f,  20.0f,  0.0f, 0.0f,
+     20.0f,  20.0f,  20.0f,  1.0f, 0.0f,
 
      //Bottom
     -20.0f, -20.0f, -20.0f,  0.0f, 1.0f,
@@ -208,7 +399,112 @@ GLfloat floorVertices[] =
     -20.0f,  20.0f,  20.0f,  0.0f, 0.0f,
     -20.0f,  20.0f, -20.0f,  0.0f, 1.0f
 };
+
+GLfloat cubeSword[] =
+{    //Vertex Coordinate  //Textures
+     //Front
+    -0.02f,  0.00f, -0.01f,  0.0f, 0.0f,
+     0.02f,  0.00f, -0.01f,  1.0f, 0.0f,
+     0.02f,  0.35f, -0.01f,  1.0f, 1.0f,
+     0.02f,  0.35f, -0.01f,  1.0f, 1.0f,
+    -0.02f,  0.35f, -0.01f,  0.0f, 1.0f,
+    -0.02f,  0.00f, -0.01f,  0.0f, 0.0f,
+
+     //Back
+    -0.02f,  0.00f,  0.01f,  0.0f, 0.0f,
+     0.02f,  0.00f,  0.01f,  1.0f, 0.0f,
+     0.02f,  0.35f,  0.01f,  1.0f, 1.0f,
+     0.02f,  0.35f,  0.01f,  1.0f, 1.0f,
+    -0.02f,  0.35f,  0.01f,  0.0f, 1.0f,
+    -0.02f,  0.00f,  0.01f,  0.0f, 0.0f,
+
+     //Left
+    -0.02f,  0.35f,  0.01f,  1.0f, 0.0f,
+    -0.02f,  0.35f, -0.01f,  1.0f, 1.0f,
+    -0.02f,  0.00f, -0.01f,  0.0f, 1.0f,
+    -0.02f,  0.00f, -0.01f,  0.0f, 1.0f,
+    -0.02f,  0.00f,  0.01f,  0.0f, 0.0f,
+    -0.02f,  0.35f,  0.01f,  1.0f, 0.0f,
+
+     //Right
+     0.02f,  0.35f,  0.01f,  1.0f, 0.0f,
+     0.02f,  0.35f, -0.01f,  1.0f, 1.0f,
+     0.02f,  0.00f, -0.01f,  0.0f, 1.0f,
+     0.02f,  0.00f, -0.01f,  0.0f, 1.0f,
+     0.02f,  0.00f,  0.01f,  0.0f, 0.0f,
+     0.02f,  0.35f,  0.01f,  1.0f, 0.0f,
+
+     //Bottom
+    -0.02f,  0.00f, -0.01f,  0.0f, 1.0f,
+     0.02f,  0.00f, -0.01f,  1.0f, 1.0f,
+     0.02f,  0.00f,  0.01f,  1.0f, 0.0f,
+     0.02f,  0.00f,  0.01f,  1.0f, 0.0f,
+    -0.02f,  0.00f,  0.01f,  0.0f, 0.0f,
+    -0.02f,  0.00f, -0.01f,  0.0f, 1.0f,
+
+     //Top
+    -0.02f,  0.35f, -0.01f,  0.0f, 1.0f,
+     0.02f,  0.35f, -0.01f,  1.0f, 1.0f,
+     0.02f,  0.35f,  0.01f,  1.0f, 0.0f,
+     0.02f,  0.35f,  0.01f,  1.0f, 0.0f,
+    -0.02f,  0.35f,  0.01f,  0.0f, 0.0f,
+    -0.02f,  0.35f, -0.01f,  0.0f, 1.0f
+};
 //For a floor
+//Well, I got a room. Not really a floor, but still. Good enough, I guess.
+//Perhaps this method only works for cubes, and not rectangles?
+//Nope! Turns out I just need to adjust for positions.
+
+GLfloat wallVertices[] =
+{    //Vertex Coordinate  //Textures
+     //Front
+    -20.0f,  -0.05f, -20.0f,  0.0f, 0.0f,
+     20.0f,  -0.05f, -20.0f,  1.0f, 0.0f,
+     20.0f,   0.05f, -20.0f,  1.0f, 1.0f,
+     20.0f,   0.05f, -20.0f,  1.0f, 1.0f,
+    -20.0f,   0.05f, -20.0f,  0.0f, 1.0f,
+    -20.0f,  -0.05f, -20.0f,  0.0f, 0.0f,
+
+     //Back
+    -20.0f,  -0.05f,  20.0f,  0.0f, 0.0f,
+     20.0f,  -0.05f,  20.0f,  1.0f, 0.0f,
+     20.0f,   0.05f,  20.0f,  1.0f, 1.0f,
+     20.0f,   0.05f,  20.0f,  1.0f, 1.0f,
+    -20.0f,   0.05f,  20.0f,  0.0f, 1.0f,
+    -20.0f,  -0.05f,  20.0f,  0.0f, 0.0f,
+
+     //Left
+    -20.0f,   0.05f,  20.0f,  1.0f, 0.0f,
+    -20.0f,   0.05f, -20.0f,  1.0f, 1.0f,
+    -20.0f,  -0.05f, -20.0f,  0.0f, 1.0f,
+    -20.0f,  -0.05f, -20.0f,  0.0f, 1.0f,
+    -20.0f,  -0.05f,  20.0f,  0.0f, 0.0f,
+    -20.0f,   0.05f,  20.0f,  1.0f, 0.0f,
+
+     //Right
+     20.0f,   0.05f,  20.0f,  1.0f, 0.0f,
+     20.0f,   0.05f, -20.0f,  1.0f, 1.0f,
+     20.0f,  -0.05f, -20.0f,  0.0f, 1.0f,
+     20.0f,  -0.05f, -20.0f,  0.0f, 1.0f,
+     20.0f,  -0.05f,  20.0f,  0.0f, 0.0f,
+     20.0f,   0.05f,  20.0f,  1.0f, 0.0f,
+
+     //Bottom
+    -20.0f, -0.05f, -20.0f,  0.0f, 1.0f,
+     20.0f, -0.05f, -20.0f,  1.0f, 1.0f,
+     20.0f, -0.05f,  20.0f,  1.0f, 0.0f,
+     20.0f, -0.05f,  20.0f,  1.0f, 0.0f,
+    -20.0f, -0.05f,  20.0f,  0.0f, 0.0f,
+    -20.0f, -0.05f, -20.0f,  0.0f, 1.0f,
+
+     //Top
+    -20.0f,  0.05f, -20.0f,  0.0f, 1.0f,
+     20.0f,  0.05f, -20.0f,  1.0f, 1.0f,
+     20.0f,  0.05f,  20.0f,  1.0f, 0.0f,
+     20.0f,  0.05f,  20.0f,  1.0f, 0.0f,
+    -20.0f,  0.05f,  20.0f,  0.0f, 0.0f,
+    -20.0f,  0.05f, -20.0f,  0.0f, 1.0f
+};
 
 glm::vec3 cubePositions[] =
 {
@@ -246,9 +542,6 @@ float textureBorderColor[] =
     1.0f,1.0f,0.0f,1.0f
 };
 
-glm::vec3 cameraPos = glm::vec3(0.0f,0.0f,3.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f,1.0f,0.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f,0.0f,-1.0f);
 //Sets up position of the camera
 //Found the error: Front and Up had the reversed values.
 
@@ -266,18 +559,19 @@ GLfloat aspect = 45.0f;
 bool keys[1024];
 //Stores key input
 
-GLfloat deltaTime = 0.0f;
-GLfloat lastFrame = 0.0f;
+//GLfloat deltaTime = 0.0f;
+//GLfloat lastFrame = 0.0f;
 //Establishes time
 bool collision;
 
 //For now unused, to be used for directional collision
-bool forwardCollision;
-bool backwardCollision;
-bool leftCollision;
-bool rightCollision;
-bool topCollision;
-bool bottomCollision;
+bool forwardCollision = false;
+bool backwardCollision = false;
+bool leftCollision = false;
+bool rightCollision = false;
+bool topCollision = false;
+bool bottomCollision = false;
+bool gravityEnabled = true;
 
 int main()
 {
@@ -292,24 +586,21 @@ int main()
     glm::vec4 vec(1.0f,0.0f,0.0f,1.0f);
     glm::mat4 trans;
 
-    glm::vec3 pCubePos = cameraPos;
+    glm::vec3 pCubePos = playerPos;
 
-    //glm::vec3 cameraPos = glm::vec3(0.0f,0.0f,3.0f);
-    //glm::vec3 cameraTarget = glm::vec3(0.0f,0.0f,0.0f);
-    //glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+    const std::string modelPointer = "test";
+    //I need a constant address of a string
+    //Creates the model
+    //Kind of? I have no frickin' clue what I'm doing here
+    //Based on the fact this library has NO FRIGGIN' USABLE DOCUMENTATION OR EXAMPLES
+    //Note to self: Create/Destroy were removed and replaced with Constructors/Destructors. The documentation is outdated.
+    //Son of a...
+    //Okay, I THINK and this is PURE speculation, the &variant of the model is purely for inheriting previous models.
+    //So I need to get a &string, which means the address of the string
 
-    //glm::vec3 up = glm::vec3(0.0f,1.0f,0.0f);
-    //glm::vec3 cameraRight = glm::normalize(glm::cross(up,cameraDirection));
-    //glm::vec3 cameraUp = glm::vec3(0.0f,0.0f,-1.0f);
-    //glm::vec3 cameraFront = glm::vec3(0.0f,1.0f,0.0f);
+    Mesh monkey;
+    std::vector<glm::vec3> vertexData;
 
-    //glm::mat4 view;
-    //view = glm::lookAt(glm::vec3(0.0f,0.0f,3.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,1.0f,0.0f));
-
-
-    //trans = glm::translate(trans, glm::vec3(0.0f,0.0f,0.0f));
-    //Changes where the object is with respect to the center, tutorial says 1.0,0.0,0.0, but that pushes it
-    //All the way to the right
     vec = trans*vec;
     //std::cout << vec.x << vec.y << vec.z << std::endl;
 
@@ -329,8 +620,8 @@ int main()
     glewExperimental = GL_TRUE;
     //So turns out this is absolutely neccessary and the program would crash without it
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,2);
     //Sets OpenGL Version
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //Ensures OpenGL will only run using new functionality.
@@ -363,6 +654,9 @@ int main()
     glfwSetCursorPosCallback(window, mouse_callback);
     //Sets what function manages mouse movement.
     glfwSetScrollCallback(window,scroll_callback);
+    //Sets what function manages scrolling the mouse wheel
+    glfwSetMouseButtonCallback(window,mouseClick_callback);
+    //Sets what function manages mouse clicks.
 
     glfwSetInputMode(window,GLFW_CURSOR,GLFW_CURSOR_DISABLED);
 
@@ -501,14 +795,89 @@ int main()
     //trans = glm::rotate(trans,90.0f,glm::vec3(0.0f,0.0f,1.0f));
     //trans = glm::scale(trans,glm::vec3(0.5f,0.5f,0.5f));
 
+    glm::mat4 modelFloor;
+    glm::mat4 modelCeiling;
+    glm::mat4 modelLeftWall;
+    glm::mat4 modelRightWall;
+    glm::mat4 modelFrontWall;
+    glm::mat4 modelBackWall;
+    GLfloat ninetyFlip = 90.0f;
+
+    modelFloor = glm::translate(modelFloor,glm::vec3(0.0f,-20.0f,0.0f));
+    modelFloor = modelFloor,glm::vec3(0.0f,0.0f,0.0f);
+    std::cout << "Floor Matrix : " << glm::to_string(modelFloor) << std::endl;
+    addStationaryCollision(modelFloor,glm::vec3(20.0f,0.05f,20.0f),glm::vec3(-20.0f,-0.05f,-20.0f));
+
+    modelCeiling = glm::translate(modelCeiling,glm::vec3(0.0f,20.0f,0.0f));
+    modelCeiling = modelCeiling,glm::vec3(0.0f,0.0f,0.0f);
+    std::cout << "Ceiling Matrix : " << glm::to_string(modelCeiling) << std::endl;
+    addStationaryCollision(modelCeiling,glm::vec3(20.0f,0.05f,20.0f),glm::vec3(-20.0f,-0.05f,-20.0f));
+
+    modelLeftWall = glm::translate(modelLeftWall,glm::vec3(-20.0f,0.0f,0.0f));
+    modelLeftWall = modelLeftWall,glm::vec3(0.0f,0.0f,0.0f);
+    modelLeftWall = glm::rotate(modelLeftWall,ninetyFlip,glm::vec3(0.0f,0.0f,1.0f));
+    std::cout << "Left Wall Matrix : " << glm::to_string(modelLeftWall) << std::endl;
+    addStationaryCollision(modelLeftWall,glm::vec3(0.05f,20.0f,20.0f),glm::vec3(-0.05f,-20.0f,-20.0f));
+
+    modelRightWall = glm::translate(modelRightWall,glm::vec3(20.0f,0.0f,0.0f));
+    modelRightWall = modelRightWall,glm::vec3(0.0f,0.0f,0.0f);
+    modelRightWall = glm::rotate(modelRightWall,ninetyFlip,glm::vec3(0.0f,0.0f,1.0f));
+    std::cout << "Right Wall Matrix : " << glm::to_string(modelRightWall) << std::endl;
+    addStationaryCollision(modelRightWall,glm::vec3(0.05f,20.0f,20.0f),glm::vec3(-0.05f,-20.0f,-20.0f));
+
+    modelFrontWall = glm::translate(modelFrontWall,glm::vec3(0.0f,0.0f,-20.0f));
+    modelFrontWall = modelFrontWall,glm::vec3(0.0f,0.0f,0.0f);
+    modelFrontWall = glm::rotate(modelFrontWall,ninetyFlip,glm::vec3(1.0f,0.0f,0.0f));
+    std::cout << "Front Wall Matrix : " << glm::to_string(modelFrontWall) << std::endl;
+    addStationaryCollision(modelFrontWall,glm::vec3(20.0f,20.0f,0.05f),glm::vec3(-20.0f,-20.0f,-0.05f));
+
+    modelBackWall = glm::translate(modelBackWall,glm::vec3(0.0f,0.0f,20.0f));
+    modelBackWall = modelBackWall,glm::vec3(0.0f,0.0f,0.0f);
+    modelBackWall = glm::rotate(modelBackWall,ninetyFlip,glm::vec3(1.0f,0.0f,0.0f));
+    std::cout << "Back Wall Matrix : " << glm::to_string(modelBackWall) << std::endl;
+    addStationaryCollision(modelBackWall,glm::vec3(20.0f,20.0f,0.05f),glm::vec3(-20.0f,-20.0f,-0.05f));
+
+    monkey.LoadObjModel("Data/monkey.obj");
+    vertexData = monkey.returnMesh();
+
+    /*
+    for (int v=0;v<vertexData.size()*5;v++)
+    {
+        for (int g=0;g<5;g++)
+        {
+            if (g < 3)
+            {
+                vertexDataGL[(v*5)+g] = vertexData.at(g)[v];
+            }
+            else
+            {
+                vertexDataGL[(v*5)+g] = 0.0f;
+            }
+        }
+    }*/
+
+
+    glm::mat4 monkeyModelMatrix;
+
+    monkeyModelMatrix = glm::mat4(1.0f);
+    monkeyModelMatrix = glm::translate(monkeyModelMatrix,glm::vec3(0.0f,-18.0f,0.0f));
+    monkeyModelMatrix = monkeyModelMatrix,glm::vec3(0.0f,0.0f,0.0f);
+    //monkeyModelMatrix = glm::scale(monkeyModelMatrix,glm::vec3(1.0,1.0,1.0));
+    std::cout << "Monkey Matrix : " << glm::to_string(monkeyModelMatrix) << std::endl;
+
+
+    swordModel = glm::translate(swordModel,glm::vec3(0.0f,-20.0f,3.0f));
+    swordModel = swordModel,glm::vec3(0.0f,0.0f,0.0f);
+    swordModel = glm::rotate(swordModel,GLfloat(60),glm::vec3(-1.0f,0.0f,0.0f));
+    swordModel = glm::rotate(swordModel,GLfloat(90),glm::vec3(0.0f,1.0f,0.0f));
 
     glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window))
     {
-        GLfloat currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        //GLfloat currentFrame = glfwGetTime();
+        //deltaTime = currentFrame - lastFrame;
+        //lastFrame = currentFrame;
 
         //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
         //Sets the polygons as unfilled
@@ -520,6 +889,15 @@ int main()
 
         glfwPollEvents();
         move_camera();
+
+        cameraPos = playerPos;
+        swordModel[3].x = playerPos[0]+.05+(.2*cameraFront.x);
+        swordModel[3].y = playerPos[1]-.15;
+        swordModel[3].z = playerPos[2]+(.2*cameraFront.z);
+        ///So they now follow your cursor, but does NOT rotate. Mm. Could be worse.
+        //This needs to be loaded once. Unfortunately, because this loads every loop, it does an awkward perma-roll.
+        //Sooooooo, I need to stuff this rotation in to the mouse-movement, but that would make this a global. Hm.
+        ///Okay, maybe I need to rotate it by the change, not the rotation itself.
 
         glClearColor(red,green,blue,1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -535,8 +913,7 @@ int main()
         glUniform1i(glGetUniformLocation(ourShader.Program,"ourTexture2"),1);
         //Does not support png's transparency.
 
-        //trans = glm::translate(trans,glm::vec3(0.5f,-0.5f,0.0f));
-        //Again, pushes the square too far off the screen.
+
         //glm::mat4 trans;
         //Not generating here makes the square spin extremely quickly
         //trans = glm::rotate(trans,(GLfloat)glfwGetTime()*50.0f,glm::vec3(0.0f,0.0f,1.0f));
@@ -549,23 +926,6 @@ int main()
         //Draws the triangle
         //glUseProgram(shaderProgram);
 
-        /*
-        timeValue = glfwGetTime();
-        greenValue = (sin(timeValue)/2+.5);
-        redValue = (cos(timeValue)/2+.5);
-        blueValue = (sin(timeValue)/2+.5);
-        vertexColorLocation = glGetUniformLocation(shaderProgram,"importColor");
-        glUseProgram(shaderProgram);
-        glUniform3f(vertexColorLocation,redValue,greenValue,blueValue);
-
-        vertices[3] = redValue;
-        vertices[11] = greenValue;
-        vertices[17] = blueValue
-        */
-
-        /*GLfloat radius = 10.0f;
-        GLfloat camX = sin(glfwGetTime())*radius;
-        GLfloat camZ = cos(glfwGetTime())*radius;*/
         glm::mat4 view;
 
         //For applying to all objects in the cubePositions array
@@ -613,6 +973,37 @@ int main()
         //glDrawElements(GL_TRIANGLES,36,GL_UNSIGNED_INT,0);
 
 
+        glBindBuffer(GL_ARRAY_BUFFER,VBO);
+        //glBindVertexArray(VAO);
+        //glBufferData(GL_ARRAY_BUFFER, monkey.vertexNum,monkey.vertexCoords,GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertexData.size()*sizeof(glm::vec3),vertexData.data(),GL_STATIC_DRAW);
+
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
+        //glBufferData(GL_ELEMENT_ARRAY_BUFFER,vertexData.size()*3,vertexData,GL_STATIC_DRAW);
+        //glBufferData(GL_ELEMENT_ARRAY_BUFFER,monkey.indexNum,monkey.vertexIndices,GL_STATIC_DRAW);
+
+
+        glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,NULL);
+        glEnableVertexAttribArray(0);
+
+        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(monkeyModelMatrix));
+        glDrawArrays(GL_TRIANGLES,0,vertexData.size());
+
+        //glDrawElements(GL_TRIANGLES,monkey.indexNum,GL_UNSIGNED_INT,0);
+        ///NOTE: You are drawing with the indices, given the vertices. Calculate it or something.
+
+
+        glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,5*sizeof(GLfloat),(GLvoid*)0);
+        glEnableVertexAttribArray(0);
+        //Color
+        //glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
+        //glEnableVertexAttribArray(1);
+        //Texture
+        glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,5*sizeof(GLfloat),(GLvoid*)(3* sizeof(GLfloat)));
+        glEnableVertexAttribArray(2);
+
+
+
 
         /**
         The 10th cube goes around the camera, probably because it has no values and defaults there.
@@ -620,7 +1011,7 @@ int main()
         **/
 
         glBufferData(GL_ARRAY_BUFFER, sizeof(smallVertices),smallVertices,GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER,VBO);
+        glBindVertexArray(VAO);
         //Causes the player's box to be smaller
 
         glm::mat4 modelp;
@@ -629,13 +1020,50 @@ int main()
         //This is it's own thing, so the camera will freemove forever, but the cube will not.
         modelp = modelp,glm::vec3(0.0f,0.0f,0.0f);
         glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelp));
-        glDrawArrays(GL_TRIANGLES,6,36);
-        //6 to 36 draws a block without the front.
-        //I wanna make this one a bit smaller so I can have more collisions.
+        //glDrawArrays(GL_TRIANGLES,0,30);
+        //Temporarily disabled so I can actually look down
+
+        glBufferData(GL_ARRAY_BUFFER, sizeof(wallVertices),wallVertices,GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER,VBO);
+
+        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelFloor));
+        glDrawArrays(GL_TRIANGLES,0,36);
+        //Draws the floor
+
+        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelCeiling));
+        glDrawArrays(GL_TRIANGLES,0,36);
+        //Draws the ceiling
+
+        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelLeftWall));
+        glDrawArrays(GL_TRIANGLES,0,36);
+
+        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelRightWall));
+        glDrawArrays(GL_TRIANGLES,0,36);
+
+        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelFrontWall));
+        glDrawArrays(GL_TRIANGLES,0,36);
+
+        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelBackWall));
+        glDrawArrays(GL_TRIANGLES,0,36);
+
+
+        glBufferData(GL_ARRAY_BUFFER, sizeof(cubeSword),cubeSword,GL_STATIC_DRAW);
+        glBindVertexArray(VAO);
+
+        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(swordModel));
+        glDrawArrays(GL_TRIANGLES,0,36);
+
 
 
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),vertices,GL_STATIC_DRAW);
         glBindVertexArray(VAO);
+
+        //This is a fairly ad-hoc gravity.
+        if (gravityEnabled == true)
+        {
+            playerPos.y -= .1;
+        }
+
 
         for (GLuint i=0;i<10;i++)
         {
@@ -687,11 +1115,11 @@ int main()
 
                             if (modelp[3].z > model[3].z)
                             {
-                                cameraPos.z = model[3].z+.65;
+                                playerPos.z = model[3].z+.65;
                             }
                             else
                             {
-                                cameraPos.z = model[3].z-.65;
+                                playerPos.z = model[3].z-.65;
 
                             }
                         }
@@ -701,11 +1129,11 @@ int main()
                             std::cout << "Most displacement: X" << std::endl;
                             if (modelp[3].x > model[3].x)
                             {
-                                cameraPos.x = model[3].x+.65;
+                                playerPos.x = model[3].x+.65;
                             }
                             else
                             {
-                                cameraPos.x = model[3].x-.65;
+                                playerPos.x = model[3].x-.65;
 
                             }
 
@@ -716,146 +1144,194 @@ int main()
                             std::cout << "Most displacement: Y" << std::endl;
                             if (modelp[3].y > model[3].y)
                             {
-                                cameraPos.y = model[3].y+.65;
+                                playerPos.y = model[3].y+.65;
                             }
                             else
                             {
-                                cameraPos.y = model[3].y-.65;
+                                playerPos.y = model[3].y-.65;
 
                             }
                         }
                 }
-
-            /*if ((modelp[3].z-.15 < model[3].z+.5 and modelp[3].z-.15 > model[3].z-.5)and
-
-                ((modelp[3].x-.15 >= model[3].x-.5 and modelp[3].x-.15 <= model[3].x+.5)
-                or (modelp[3].x+.15 >= model[3].x-.5 and modelp[3].x+.15 <= model[3].x+.5)) and
-
-                ((modelp[3].y-.15 >= model[3].y-.5 and modelp[3].y-.15 <= model[3].y+.5)
-                or (modelp[3].y+.15 >= model[3].y-.5 and modelp[3].y+.15 <= model[3].y+.5)))
-            {
-                //Needa make it only apply to blocks.
-                //Then make sure it doesn't let you keep going there.
-                //std::cout << glm::to_string(modelp) << std::endl << std::endl;
-                //Okay, so! This is checking if it's intersecting EVERYWHERE, not just one point.
-                //Try just one row/column?
-
-                //collision = true;
-
-                forwardCollision = true;
-
-                std::cout << "Forwards Collision is with cube number " << i << std::endl;
-
-                cameraPos.z = model[3].z+.65;
-            }
-            /*
-                if ((modelp[3].z+.15 < model[3].z+.5 and modelp[3].z+.15 > model[3].z-.5)and
-
-                ((modelp[3].x-.15 >= model[3].x-.5 and modelp[3].x-.15 <= model[3].x+.5)
-                or (modelp[3].x+.15 >= model[3].x-.5 and modelp[3].x+.15 <= model[3].x+.5)) and
-
-                ((modelp[3].y-.15 >= model[3].y-.5 and modelp[3].y-.15 <= model[3].y+.5)
-                or (modelp[3].y+.15 >= model[3].y-.5 and modelp[3].y+.15 <= model[3].y+.5)))
-            {
-                //Backwards collision
-                //collision = true;
-
-                backwardCollision = true;
-
-                std::cout << "Backwards Collision is with cube number " << i << std::endl;
-
-                cameraPos.z = model[3].z-.65;
-            }
-            if (((modelp[3].z+.15 <= model[3].z+.5 and modelp[3].z+.15 >= model[3].z-.5)
-                or (modelp[3].z-.15 <= model[3].z+.5 and model[3].z-.15 >= model[3].z+.5)) and
-
-                ((modelp[3].x-.15 > model[3].x-.5 and modelp[3].x-.15 < model[3].x+.5)) and
-
-                ((modelp[3].y-.15 >= model[3].y-.5 and modelp[3].y-.15 <= model[3].y+.5)
-                or (modelp[3].y+.15 >= model[3].y-.5 and modelp[3].y+.15 <= model[3].y+.5)))
-            {
-                //Left Collision
-                //collision = true;
-
-                leftCollision = true;
-
-                std::cout << "Left Collision is with cube number " << i << std::endl;
-
-                cameraPos.x = model[3].x+.65;
-            }
-            if (((modelp[3].z+.15 <= model[3].z+.5 and modelp[3].z+.15 >= model[3].z-.5)
-                or (modelp[3].z-.15 <= model[3].z+.5 and model[3].z-.15 >= model[3].z+.5)) and
-
-                ((modelp[3].x+.15 > model[3].x-.5 and modelp[3].x+.15 < model[3].x+.5)) and
-
-                ((modelp[3].y-.15 >= model[3].y-.5 and modelp[3].y-.15 <= model[3].y+.5)
-                or (modelp[3].y+.15 >= model[3].y-.5 and modelp[3].y+.15 <= model[3].y+.5)))
-            {
-                //Right Collision
-                //collision = true;
-
-                rightCollision = true;
-
-                std::cout << "Right Collision is with cube number " << i << std::endl;
-
-                cameraPos.x = model[3].x-.65;
-            }
-            if (((modelp[3].z+.15 <= model[3].z+.5 and modelp[3].z+.15 >= model[3].z-.5)
-                or (modelp[3].z-.15 <= model[3].z+.5 and model[3].z-.15 >= model[3].z+.5)) and
-
-                ((modelp[3].x-.15 >= model[3].x-.5 and modelp[3].x-.15 <= model[3].x+.5)
-                or (modelp[3].x+.15 >= model[3].x-.5 and modelp[3].x+.15 <= model[3].x+.5)) and
-
-                (modelp[3].y+.15 > model[3].y-.5 and modelp[3].y+.15 < model[3].y+.5))
-            {
-                //Top Collision
-                //collision = true;
-
-                topCollision = true;
-
-                std::cout << "Top Collision is with cube number " << i << std::endl;
-
-                cameraPos.y = model[3].y-.65;
-            }
-            if (((modelp[3].z+.15 <= model[3].z+.5 and modelp[3].z+.15 >= model[3].z-.5)
-                or (modelp[3].z-.15 <= model[3].z+.5 and model[3].z-.15 >= model[3].z+.5)) and
-
-                ((modelp[3].x-.15 >= model[3].x-.5 and modelp[3].x-.15 <= model[3].x+.5)
-                or (modelp[3].x+.15 >= model[3].x-.5 and modelp[3].x+.15 <= model[3].x+.5)) and
-
-                (modelp[3].y-.15 > model[3].y-.5 and modelp[3].y-.15 < model[3].y+.5))
-            {
-                //Top Collision
-                //collision = true;
-
-                bottomCollision = true;
-
-                std::cout << "Bottom Collision is with cube number " << i << std::endl;
-
-                cameraPos.y = model[3].y+.65;
-            }*/
-            /*else
-            {
-                //std::cout << "Player position: " << glm::to_string(modelp) << std::endl;
-                //Wait, is modelp the MOUSE position?
-                //std::cout << "Cube position: " << model << std::endl;
-            }*/
         }
 
 
-        /* Floor (Under Construction)s
-        glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices),floorVertices,GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER,VBO);
+
+
+        if (modelp[3].y-.15 <= -20)
+        {
+            playerPos.y = -20+.15;
+            gravityEnabled = false;
+            bottomCollision = true;
+            //std::cout << "Collision with Floor" << std::endl;
+        }
+        else
+        {
+            bottomCollision = false;
+            gravityEnabled = true;
+        }
+
+
+        if (dashForward)
+        {
+            dashElapsedTime = glfwGetTime();
+            if (dashElapsedTime <= .25)
+            {
+                stationaryCollision(playerPos,glm::vec3(.15,.15,.15),glm::vec3(-.15,-.15,-.15),glm::vec3((.4)*cameraFront.x,0,(.4)*cameraFront.z));
+            }
+            if (dashElapsedTime >= .15)
+            {
+                canBuffer = true;
+            }
+            if (dashElapsedTime >= .35)
+            {
+                dashForward = false;
+                currentAction = false;
+            }
+        }
+        else if (dashBackward)
+        {
+            dashElapsedTime = glfwGetTime();
+
+            if (dashElapsedTime <= .25)
+            {
+                stationaryCollision(playerPos,glm::vec3(.15,.15,.15),glm::vec3(-.15,-.15,-.15),glm::vec3(-(.4*cameraFront.x),0,-(.4*cameraFront.z)));
+            }
+            if (dashElapsedTime >= .15)
+            {
+                canBuffer = true;
+            }
+            if (dashElapsedTime >= .35)
+            {
+                dashBackward = false;
+                currentAction = false;
+            }
+        }
+        else if (dashLeft)
+        {
+            dashElapsedTime = glfwGetTime();
+            if (dashElapsedTime <= .25)
+            {
+                stationaryCollision(playerPos,glm::vec3(.15,.15,.15),glm::vec3(-.15,-.15,-.15),glm::vec3(-(glm::normalize(glm::cross(cameraFront,cameraUp))*GLfloat(.4))));
+            }
+            if (dashElapsedTime >= .15)
+            {
+                canBuffer = true;
+            }
+            if (dashElapsedTime >= .35)
+            {
+                dashLeft = false;
+                currentAction = false;
+            }
+        }
+        else if (dashRight)
+        {
+            dashElapsedTime = glfwGetTime();
+
+            if (dashElapsedTime <= .25)
+            {
+                stationaryCollision(playerPos,glm::vec3(.15,.15,.15),glm::vec3(-.15,-.15,-.15),glm::vec3((glm::normalize(glm::cross(cameraFront,cameraUp))*GLfloat(.4))));
+            }
+            if (dashElapsedTime >= .15)
+            {
+                canBuffer = true;
+            }
+            if (dashElapsedTime >= .35)
+            {
+                dashRight = false;
+                currentAction = false;
+            }
+        }
+        else if (lightAttack)
+        {
+
+        }
+        else if (heavyAttack)
+        {
+            attackElapsedTime = glfwGetTime();
+            if (attackElapsedTime <= .25)
+            {
+                ///Rightclicking breaks it for now.
+                //Pull back time
+                std::cout << "Rotating" << std::endl;
+                swordModel = glm::rotate(swordModel,GLfloat(1),glm::vec3(-1.0f,0.0f,0.0f));
+            }
+            if (attackElapsedTime > .25 and attackElapsedTime <= .5)
+            {
+                //The actual thrust
+            }
+            if (attackElapsedTime > .5 and attackElapsedTime < .75 and !bufferEnabled)
+            {
+                //Pull back time, also the time to let a buffer in.
+                canBuffer = true;
+                currentAction = false;
+
+            }
+            //Basically, pull back, make a thrust. Should have some time after for cancelling/addition input
+
+        }
+        else if (rollAttack)
+        {
+
+        }
+
+        if (canBuffer == true and currentAction == false)
+        {
+            //Okay, works. It feels a bit rough though.
+            if (actionBuffer == 1)
+            {
+                std::cout << "Buffered Frontdash" << std::endl;
+                glfwSetTime(0);
+                dashForward = true;
+                currentAction = true;
+            }
+            else if (actionBuffer == 2)
+            {
+                std::cout << "Buffered Backdash" << std::endl;
+                glfwSetTime(0);
+                dashBackward = true;
+                currentAction = true;
+            }
+            else if (actionBuffer == 3)
+            {
+                std::cout << "Buffered Leftdash" << std::endl;
+                glfwSetTime(0);
+                dashLeft = true;
+                currentAction = true;
+            }
+            else if (actionBuffer == 4)
+            {
+                std::cout << "Buffered Rightdash" << std::endl;
+                glfwSetTime(0);
+                dashRight = true;
+                currentAction = true;
+            }
+            else if (actionBuffer == 5)
+            {
+                std::cout << "You leftclicked (Buffer Variant)" << std::endl;
+                currentAction = true;
+                rollAttack = true;
+                ///Do a special dash attack?
+                currentAction = false;
+
+            }
+            else if (actionBuffer == 6)
+            {
+                std::cout << "You rightclicked (Buffer Variant)" << std::endl;
+                currentAction = true;
+                heavyAttack = true;
+                ///Note: Should do a heavy attack regardless
+                currentAction = false;
+            }
+            canBuffer = false;
+            actionBuffer = 0;
+        }
+
+        //This DOES draw it, BUT, it only draws the top/bottom (I can't tell which).
         //Causes the player's box to be smaller
 
         glm::mat4 modelf;
-
-        modelf = glm::translate(modelp,glm::vec3(0.0f,0.0f,0.0f));
-        //This is it's own thing, so the camera will freemove forever, but the cube will not.
-        modelf = modelf,glm::vec3(0.0f,0.0f,0.0f);
-        glUniformMatrix4fv(modelLoc,1,GL_FALSE,glm::value_ptr(modelf));
         glDrawArrays(GL_TRIANGLES,0,36);
-        */
 
 
 
@@ -863,7 +1339,10 @@ int main()
 
         glfwSwapBuffers(window);
 
+        //std::cout << "Camera Position: " << cameraPos[0] << ", " << cameraPos[1] << ", " << cameraPos[2] << std::endl;
+
     }
+
 
     glDeleteVertexArrays(1,&VAO);
     glDeleteBuffers(1,&VBO);
@@ -939,26 +1418,169 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void move_camera()
 {
     //Moves the camera
-    GLfloat camSpeed = 5.0f * deltaTime;
-    if (collision == false)
+    GLfloat camSpeed = 0.2f;
+    //How fast the camera moves
+    //double dashTime = 1.0f;
+    //How long a dash should last. Might end up making it deal with physics instead of a fixed time, but for now, this'll do.
+    //How long a dash has lasted.
+    if (collision == false and currentAction == false /*and dashForward == false and dashBackward == false and dashLeft == false and dashRight == false*/)
     {
+        //Okay! So there is one bump, but no more. There's also the problem that if you block the while facing left, you block the forward.
+        //Maybe I need to adjust for what direction the player is facing? Or maybe just check if the collision is going to happen if you move a direction in general?
+        //Yeah, that'll probably need to happen.
         if (keys[GLFW_KEY_W])
         {
-            cameraPos += camSpeed*cameraFront;
+            if (keys[GLFW_KEY_SPACE])
+            {
+                glfwSetTime(0);
+                dashForward = true;
+                currentAction = true;
+                /*
+                //A time loop for ~ a second where you move fast but can't walk. Maybe allow queuing up attacks or something.
+                stationaryCollision(cameraPos,glm::vec3(.15,.15,.15),glm::vec3(-.15,-.15,-.15),glm::vec3(camSpeed*cameraFront.x,0,camSpeed*cameraFront.z));
+                glfwSetTime(1);
+                while (dashElapsedTime < 2)
+                {
+                    stationaryCollision(cameraPos,glm::vec3(.15,.15,.15),glm::vec3(-.15,-.15,-.15),glm::vec3(camSpeed*cameraFront.x,0,camSpeed*cameraFront.z));
+                    //stationaryCollision(cameraPos,glm::vec3(.15,.15,.15),glm::vec3(-.15,-.15,-.15),glm::vec3((camSpeed*3)*cameraFront.x,0,(camSpeed*3)*cameraFront.z));
+                    std::cout << "Test" << std::endl;
+                    dashElapsedTime = glfwGetTime();
+                }
+                dashElapsedTime = 0;
+                //Maybe try putting this in the main while loop, so that it won't hold the game still for a few seconds? That might be the problem.
+                */
+            }
+            else
+            {
+                stationaryCollision(playerPos,glm::vec3(.15,.15,.15),glm::vec3(-.15,-.15,-.15),glm::vec3(camSpeed*cameraFront.x,0,camSpeed*cameraFront.z));
+            }
+            //if (!forwardCollision)
+            //{
+                //cameraPos.z += camSpeed*cameraFront.z;
+                //cameraPos.x += camSpeed*cameraFront.x;
+
+            //}
+
+            //cameraPos.z += cameraFront.z;
         }
         if (keys[GLFW_KEY_S])
         {
-            cameraPos += -(camSpeed*cameraFront);
+            if (keys[GLFW_KEY_SPACE])
+            {
+                glfwSetTime(0);
+                dashBackward = true;
+                currentAction = true;
+
+            }
+            else
+            {
+                stationaryCollision(playerPos,glm::vec3(.15,.15,.15),glm::vec3(-.15,-.15,-.15),glm::vec3(-(camSpeed*cameraFront.x),0,-(camSpeed*cameraFront.z)));
+            }
+            //cameraPos -= (camSpeed*cameraFront);
+            /*
+            if (!backwardCollision)
+            {
+                //cameraPos.z -= camSpeed*cameraFront.z;
+                //cameraPos.x -= camSpeed*cameraFront.x;
+            }*/
+            //cameraPos.z += 1.0f;
         }
         if (keys[GLFW_KEY_A])
         {
-            cameraPos += -(glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed);
+            if (keys[GLFW_KEY_SPACE])
+            {
+                glfwSetTime(0);
+                dashLeft = true;
+                currentAction = true;
+
+            }
+            else
+            {
+                stationaryCollision(playerPos,glm::vec3(.15,.15,.15),glm::vec3(-.15,-.15,-.15),glm::vec3(-(glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed)));
+            }
+            /*
+            if (!leftCollision)
+            {
+                //cameraPos -= glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed;
+                //cameraPos.x -= camSpeed*cameraFront.x;
+            }*/
+            //cameraPos.x -= (glm::normalize(glm::cross(cameraFront.x,cameraUp))*camSpeed);
+
+            //cameraPos.x -= 1.0f;
         }
         if (keys[GLFW_KEY_D])
         {
-            cameraPos += glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed;
+            if (keys[GLFW_KEY_SPACE])
+            {
+                glfwSetTime(0);
+                dashRight = true;
+                currentAction = true;
+
+            }
+            else
+            {
+                stationaryCollision(playerPos,glm::vec3(.15,.15,.15),glm::vec3(-.15,-.15,-.15),glm::vec3((glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed)));
+            }
+            /*if (!rightCollision)
+            {
+                //cameraPos += glm::normalize(glm::cross(cameraFront,cameraUp))*camSpeed;;
+            }*/
+            //cameraPos.x += 1.0f;
         }
     }
+    else if (canBuffer == true and actionBuffer == 0)
+    {
+        if (keys[GLFW_KEY_W] and keys[GLFW_KEY_SPACE])
+        {
+            actionBuffer = 1;
+        }
+        if (keys[GLFW_KEY_S] and keys[GLFW_KEY_SPACE])
+        {
+            actionBuffer = 2;
+        }
+        if (keys[GLFW_KEY_A] and keys[GLFW_KEY_SPACE])
+        {
+            actionBuffer = 3;
+        }
+        if (keys[GLFW_KEY_D] and keys[GLFW_KEY_SPACE])
+        {
+            actionBuffer = 4;
+        }
+
+    }
+}
+
+void mouseClick_callback(GLFWwindow* window, int button, int action, int mods)
+{
+
+    if (currentAction == false)
+    {
+        if (button == GLFW_MOUSE_BUTTON_LEFT and action == GLFW_PRESS)
+        {
+            std::cout << "You leftclicked" << std::endl;
+            lightAttack = true;
+            currentAction = true;
+        }
+        if (button == GLFW_MOUSE_BUTTON_RIGHT and action == GLFW_PRESS)
+        {
+            std::cout << "You rightclicked" << std::endl;
+            heavyAttack = true;
+            currentAction = true;
+        }
+    }
+    else if (canBuffer == false and actionBuffer == 0)
+    {
+        if (button == GLFW_MOUSE_BUTTON_LEFT and action == GLFW_PRESS)
+        {
+            actionBuffer = 5;
+        }
+        if (button == GLFW_MOUSE_BUTTON_RIGHT and action == GLFW_PRESS)
+        {
+            actionBuffer = 6;
+        }
+
+    }
+    //Just here so clicking doesn't break anything.
 }
 
 bool firstMouse = true;
@@ -1001,7 +1623,19 @@ void mouse_callback(GLFWwindow* window,double xpos,double ypos)
     front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     front.y = sin(glm::radians(pitch));
     front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    //swordModel = glm::rotate(swordModel,pitch,glm::vec3(1.0f,0.0f,0.0f));
+    ///Okay, 2 things: 1) Rotates too much.
+    ///2) Rotates downward for whatever reason.
+    //swordModel = glm::rotate(swordModel,yoffset,glm::vec3(0.0f,0.0f,1.0f));
+    //swordModel = glm::rotate(swordModel,GLfloat(front.z - cameraFront[2]),glm::vec3(0.0f,0.0f,1.0f));
     cameraFront = glm::normalize(front);
+    //swordModel[0].x = cameraFront[0];
+    //swordModel[1].x = cameraFront[0];
+
+    //swordModel[2].x = cameraFront[0];
+    //swordModel = glm::rotate(swordModel,GLfloat(cameraFront[0]),glm::vec3(1.0f,0.0f,0.0f));
+    //swordModel = glm::rotate(swordModel,GLfloat(cameraFront[1]),glm::vec3(1.0f,0.0f,0.0f));
+    //swordModel = glm::rotate(swordModel,GLfloat(cameraFront[2]),glm::vec3(1.0f,0.0f,0.0f));
 }
 
 void scroll_callback(GLFWwindow* window,double xoffset,double yoffset)
